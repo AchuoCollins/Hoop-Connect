@@ -62,7 +62,7 @@
       <p class="sub">Every team here appears on the competition page team strip, the Teams section, and the standings table.</p>
 
       <table class="admin-table">
-        <thead><tr><th></th><th>ID</th><th>Name</th><th>W</th><th>L</th><th>Players</th><th></th></tr></thead>
+        <thead><tr><th></th><th>ID</th><th>Name</th><th>Division</th><th>W</th><th>L</th><th>Players</th><th></th></tr></thead>
         <tbody id="teamsTableBody"></tbody>
       </table>
 
@@ -104,6 +104,20 @@
           <div class="admin-field">
             <label for="teamCity">City / Base</label>
             <input type="text" id="teamCity" placeholder="e.g. Molyko" />
+          </div>
+        </div>
+        <div class="admin-form-row">
+          <div class="admin-field">
+            <label for="teamGender">Division / Gender</label>
+            <select id="teamGender">
+              <option value="Men">Men's Division</option>
+              <option value="Women">Women's Division</option>
+              <option value="Mixed">Mixed / Co-ed</option>
+            </select>
+          </div>
+          <div class="admin-field">
+            <label for="teamColor">Initials Color</label>
+            <input type="color" id="teamColor" value="#0a1f44" />
           </div>
         </div>
         <div class="admin-form-row">

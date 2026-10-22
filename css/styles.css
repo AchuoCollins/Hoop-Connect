@@ -1,5 +1,5 @@
 /* =========================================================================
-   HOOP CONNECT — styles.css
+   HOOP CONNECT — styles.css  (complete, final)
    ========================================================================= */
 
 :root{
@@ -130,17 +130,9 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
   75%{border-radius:60% 40% 50% 50% / 50% 60% 40% 50%;transform:translateY(-15px) scale(1,1)}
 }
 .loader-text{font-family:'Bebas Neue';font-size:24px;color:#fff;letter-spacing:.3em}
-.loader-text span{display:inline-block;opacity:.3;animation:loaderFade 1.4s infinite}
-.loader-text span:nth-child(1){animation-delay:0s}.loader-text span:nth-child(2){animation-delay:.1s}
-.loader-text span:nth-child(3){animation-delay:.2s}.loader-text span:nth-child(4){animation-delay:.3s}
-.loader-text span:nth-child(5){animation-delay:.4s}.loader-text span:nth-child(6){animation-delay:.5s}
-.loader-text span:nth-child(7){animation-delay:.6s}.loader-text span:nth-child(8){animation-delay:.7s}
-.loader-text span:nth-child(9){animation-delay:.8s}.loader-text span:nth-child(10){animation-delay:.9s}
-.loader-text span:nth-child(11){animation-delay:1s}.loader-text span:nth-child(12){animation-delay:1.1s}
-@keyframes loaderFade{0%,100%{opacity:.3}50%{opacity:1;color:var(--gold)}}
 
 /* =========================================================================
-   HEADER
+   HEADER  (desktop + mobile hamburger)
    ========================================================================= */
 header{position:relative;z-index:50}
 
@@ -153,6 +145,18 @@ header{position:relative;z-index:50}
   position:relative;
   z-index:60;
 }
+
+/* Hamburger button (only visible on mobile) */
+.mobile-menu-btn{
+  display:none;
+  color:#fff;
+  padding:6px;
+  border-radius:6px;
+  transition:background .2s;
+  flex-shrink:0;
+}
+.mobile-menu-btn:hover{background:rgba(255,255,255,0.1)}
+
 .logo{display:flex;align-items:center;gap:10px;font-family:'Bebas Neue';font-size:22px;letter-spacing:0.08em;color:#fff;perspective:400px}
 .logo-mark{
   width:36px;height:36px;border-radius:50%;
@@ -201,7 +205,17 @@ header{position:relative;z-index:50}
 .auth a.cta-gold{color:var(--navy-deep);opacity:1;font-size:13px;font-weight:700}
 .auth a.cta-gold:hover{color:var(--navy-deep)}
 
-.nav-bar{display:none}
+.nav-bar{
+  background:rgba(var(--navy-rgb),0.85);
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  border-bottom:1px solid rgba(255,255,255,0.08);
+  padding:12px 28px;display:flex;align-items:center;justify-content:center;gap:28px;flex-wrap:wrap;color:#fff;
+  position:relative;
+  z-index:50;
+  transition:max-height .3s ease, padding .3s ease, opacity .3s ease;
+  max-height:80px;
+  opacity:1;
+}
 
 .nav-links{display:flex;gap:22px;align-items:center}
 .nav-links a{
@@ -240,6 +254,47 @@ header{position:relative;z-index:50}
 .cta-gold:hover{transform:translateY(-2px) scale(1.05);box-shadow:0 10px 30px rgba(var(--gold-rgb),0.5)}
 .cta-gold .dot{width:8px;height:8px;border-radius:50%;background:var(--navy-deep);animation:pulse 1.4s infinite}
 @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.3;transform:scale(1.4)}}
+
+/* ---------- MOBILE MENU (hamburger) ---------- */
+@media (max-width:900px){
+  .mobile-menu-btn{display:inline-flex;align-items:center;justify-content:center;order:-1}
+}
+@media (max-width:720px){
+  /* Collapse the nav bar; hamburger toggles .mobile-open */
+  .nav-bar{
+    max-height:0;
+    padding-top:0;
+    padding-bottom:0;
+    overflow:hidden;
+    opacity:0;
+    border-bottom:none;
+  }
+  .nav-bar.mobile-open{
+    max-height:400px;
+    padding:12px 16px;
+    opacity:1;
+    border-bottom:1px solid rgba(255,255,255,0.08);
+  }
+  .nav-links{
+    flex-direction:column;
+    align-items:stretch;
+    gap:4px;
+    width:100%;
+  }
+  .nav-links a{
+    display:block;
+    padding:12px 14px;
+    border-radius:8px;
+    background:rgba(255,255,255,0.05);
+    font-size:14px;
+  }
+  .nav-links a.active::after{display:none}
+  .nav-links a::before{display:none}
+  .nav-links a:hover,.nav-links a.active{background:rgba(var(--gold-rgb),0.15);color:#fff}
+
+  .search{display:none}
+  .cta-gold{flex-shrink:0;font-size:11px;padding:8px 12px}
+}
 
 /* =========================================================================
    UNIFIED SHELL
@@ -329,47 +384,31 @@ header{position:relative;z-index:50}
   font-size:12px;color:rgba(255,255,255,0.65);line-height:1.45;margin-top:6px;
 }
 
-/* Plain sidebar head */
 .hc-sidebar-head--plain{
   background:linear-gradient(150deg,rgba(var(--navy-rgb),0.95),rgba(var(--navy-deep-rgb),0.98));
   color:#fff;
 }
-.hc-sidebar-head--plain .hc-sidebar-head-body{
-  padding:26px 22px;
-}
+.hc-sidebar-head--plain .hc-sidebar-head-body{padding:26px 22px}
 .hc-sidebar-head--plain::after{
-  content:"";
-  position:absolute;
-  top:-40%;
-  right:-30%;
-  width:180px;
-  height:180px;
-  border-radius:50%;
+  content:"";position:absolute;top:-40%;right:-30%;
+  width:180px;height:180px;border-radius:50%;
   background:radial-gradient(circle,rgba(var(--gold-rgb),0.35),transparent 70%);
   pointer-events:none;
 }
 
-/* Socials */
 .hc-sidebar-socials{
-  display:flex;
-  gap:8px;
-  flex-wrap:wrap;
-  padding:12px 14px;
-  background:#fff;
-  border:1px solid var(--line);
-  border-radius:14px;
-  box-shadow:var(--shadow-sm);
+  display:flex;gap:8px;flex-wrap:wrap;
+  padding:12px 14px;background:#fff;
+  border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow-sm);
 }
 .hc-sidebar-socials .comp-social{
   width:36px;height:36px;border-radius:9px;
   display:inline-flex;align-items:center;justify-content:center;
-  background:rgba(var(--royal-rgb),0.08);
-  color:var(--royal);
+  background:rgba(var(--royal-rgb),0.08);color:var(--royal);
   transition:background .2s,color .2s,transform .2s;
 }
 .hc-sidebar-socials .comp-social:hover{background:var(--royal);color:#fff;transform:translateY(-2px)}
 .hc-sidebar-socials .comp-social svg{width:16px;height:16px}
-@media (max-width:960px){.hc-sidebar-socials{justify-content:center}}
 
 .hc-sidebar-nav{
   display:flex;flex-direction:column;gap:4px;
@@ -484,8 +523,6 @@ header{position:relative;z-index:50}
 .cta-outline:hover{color:var(--navy-deep);border-color:var(--gold);transform:translateY(-3px) scale(1.04);box-shadow:0 10px 30px rgba(var(--gold-rgb),0.4)}
 .cta-outline svg{transition:transform .3s}
 .cta-outline:hover svg{transform:translateX(4px)}
-.morph-divider{position:absolute;bottom:-2px;left:0;right:0;height:140px;z-index:4;pointer-events:none;overflow:hidden}
-.morph-divider svg{width:100%;height:100%;display:block}
 
 /* ---------- LIVE TICKER ---------- */
 .ticker-wrap{padding:14px 0;position:relative;overflow:hidden}
@@ -531,7 +568,9 @@ header{position:relative;z-index:50}
 .ticker-upcoming .match{font-family:'Bebas Neue';font-size:18px;color:var(--navy);letter-spacing:0.04em}
 .ticker-upcoming .time{font-size:12px;color:var(--gold-deep);font-weight:700}
 
-/* ---------- FEED ---------- */
+/* =========================================================================
+   FEED / CLIPS  —  horizontal scroll on mobile so cards never overlap
+   ========================================================================= */
 .feed-tabs{display:flex;gap:6px;margin-bottom:22px;border-bottom:1px solid var(--line);padding-bottom:0;overflow-x:auto;scrollbar-width:none}
 .feed-tabs::-webkit-scrollbar{display:none}
 .feed-tabs button{
@@ -541,6 +580,7 @@ header{position:relative;z-index:50}
 }
 .feed-tabs button.active{color:var(--royal);border-bottom-color:var(--royal)}
 .feed-tabs button:hover{color:var(--navy)}
+
 .feed-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
 .feed-card{
   background:rgba(255,255,255,0.92);backdrop-filter:blur(12px);
@@ -630,6 +670,7 @@ header{position:relative;z-index:50}
 .section-head h2{font-family:'Bebas Neue';font-size:clamp(28px,4vw,44px);color:var(--navy);line-height:1}
 .section-head h2 .accent{color:var(--gold-deep);text-shadow:0 0 30px rgba(var(--gold-rgb),0.3)}
 .section-head p{color:var(--muted);font-size:14px;max-width:420px}
+
 .clips-grid{
   display:grid;grid-template-columns:repeat(3,1fr);grid-auto-rows:180px;gap:12px;
 }
@@ -642,14 +683,6 @@ header{position:relative;z-index:50}
 .clip img{width:100%;height:100%;object-fit:cover;transition:transform .45s var(--ease-out);position:relative;z-index:0}
 .clip:hover img{transform:scale(1.15)}
 .clip::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 50%,rgba(var(--navy-deep-rgb),0.85) 100%);transition:opacity .3s;pointer-events:none;z-index:1}
-.clip::before{
-  content:"";position:absolute;inset:0;border-radius:10px;padding:2px;
-  background:linear-gradient(135deg,var(--royal),var(--gold));
-  -webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);
-  -webkit-mask-composite:xor;mask-composite:exclude;
-  opacity:0;transition:opacity .4s;z-index:3;pointer-events:none;
-}
-.clip:hover::before{opacity:1}
 .clip:hover{transform:translateY(-6px) scale(1.02)}
 .clip .cap{
   position:absolute;left:12px;right:12px;bottom:30px;z-index:2;
@@ -657,9 +690,6 @@ header{position:relative;z-index:50}
   transition:transform .4s;text-shadow:0 2px 8px rgba(0,0,0,0.5);
 }
 .clip:hover .cap{transform:translateY(-4px)}
-.clip .play-sm{pointer-events:none}
-.clip .play-sm.zoom::after{display:none}
-.clip .play-sm.zoom .hicon{width:22px;height:22px;stroke:var(--navy-deep);stroke-width:2.2}
 .clip .clip-link{position:absolute;inset:0;z-index:2}
 .clip .clip-dl{
   position:absolute;top:10px;left:10px;z-index:3;width:30px;height:30px;border-radius:6px;
@@ -736,11 +766,6 @@ header{position:relative;z-index:50}
   transition:gap .2s;
 }
 .competition-card:hover .competition-card-cta{gap:12px}
-@media (max-width:640px){
-  .competition-card{grid-template-columns:1fr}
-  .competition-card-media{min-height:180px;aspect-ratio:16/9}
-  .competition-card-body{padding:22px 20px}
-}
 
 /* =========================================================================
    PAGE HERO
@@ -757,12 +782,6 @@ header{position:relative;z-index:50}
 .hc-main .page-hero{
   padding:60px 40px;
   border-radius:14px;
-}
-@media (max-width:960px){
-  .hc-main .page-hero{padding:48px 28px}
-}
-@media (max-width:720px){
-  .hc-main .page-hero{padding:36px 20px;border-radius:12px}
 }
 
 /* =========================================================================
@@ -817,6 +836,10 @@ header{position:relative;z-index:50}
 .team-card .rec{font-size:12px;color:var(--muted)}
 .team-card .seed{font-size:11px;color:var(--gold-deep);font-weight:700;text-transform:uppercase;letter-spacing:0.1em}
 .team-card .roster{font-size:11px;color:var(--muted);line-height:1.4;margin-top:2px}
+.team-card .rec.gender{
+  font-size:10px;text-transform:uppercase;letter-spacing:0.1em;
+  color:var(--gold-deep);margin-top:2px;
+}
 
 .scores-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;margin-bottom:40px}
 .scores-grid .ticker-card,.scores-grid .ticker-upcoming{min-width:0}
@@ -832,15 +855,20 @@ header{position:relative;z-index:50}
 .ticker-team.winner .name{color:var(--navy);font-weight:800}
 .ticker-team.winner .score{color:var(--royal)}
 .ticker-team.loser{opacity:0.45}
-.bracket-nonq{display:flex;flex-wrap:wrap;gap:14px}
-.bracket-nonq .team-pill{opacity:0.7}
+
+.bracket-nonq{
+  display:grid !important;
+  grid-template-columns:repeat(auto-fill,minmax(160px,1fr)) !important;
+  gap:16px !important;
+  margin-top:16px;
+}
+.bracket-nonq .team-card{background:#fff;padding:18px 12px;width:100%}
+.bracket-nonq .team-card .logo{width:56px;height:56px;font-size:20px}
 
 .section-title{font-family:'Bebas Neue';font-size:28px;color:var(--navy);letter-spacing:0.03em;margin:0 0 12px}
 .section-title-sm{font-family:'Bebas Neue';font-size:20px;color:var(--navy);letter-spacing:0.03em;margin-bottom:12px}
 
-.competition-overview{
-  display:grid;grid-template-columns:1.6fr 1fr;gap:32px;
-}
+.competition-overview{display:grid;grid-template-columns:1.6fr 1fr;gap:32px}
 .competition-overview .overview-feed{grid-column:1;min-width:0}
 .competition-overview aside{grid-column:2;min-width:0}
 .competition-overview .clips-section{grid-column:1/-1;padding:20px 0 0}
@@ -894,6 +922,7 @@ body.admin-page{background:var(--off-white)}
 .status-pill.live{color:#dc2626;background:rgba(220,38,38,0.1)}
 .status-pill.final{color:#6b7280;background:rgba(107,114,128,0.1)}
 .status-pill.upcoming{color:#0a4fd6;background:rgba(var(--royal-rgb),0.1)}
+
 .admin-shell{display:grid;grid-template-columns:230px 1fr;min-height:100vh}
 .admin-sidebar{background:var(--navy-deep);color:#fff;padding:24px 16px;position:sticky;top:0;height:100vh;overflow-y:auto}
 .admin-sidebar .logo{margin-bottom:22px}
@@ -994,7 +1023,67 @@ body.static-mode .cursor-blob{display:none}
 body.static-mode .scroll-indicator{display:none}
 
 /* =========================================================================
-   MOBILE
+   TEAM MODAL
+   ========================================================================= */
+.team-modal{
+  position:fixed;inset:0;z-index:2000;
+  background:rgba(var(--navy-deep-rgb), 0.75);
+  backdrop-filter:blur(4px);
+  display:flex;align-items:center;justify-content:center;padding:16px;
+}
+.team-modal-card{
+  background:#fff;border-radius:16px;width:100%;max-width:480px;
+  padding:28px;position:relative;max-height:90vh;overflow-y:auto;
+  box-shadow:0 20px 60px rgba(0,0,0,0.3);
+  animation:modalUp 0.3s var(--ease-out);
+}
+@keyframes modalUp{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
+.team-modal-close{
+  position:absolute;top:16px;right:20px;font-size:32px;line-height:1;
+  color:var(--muted);background:none;border:none;cursor:pointer;
+}
+.team-modal-close:hover{color:var(--navy)}
+.team-modal-head{display:flex;align-items:center;gap:16px;margin-bottom:24px}
+.team-modal-logo{
+  width:72px;height:72px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-family:'Bebas Neue';font-size:28px;color:#fff;flex-shrink:0;
+  box-shadow:0 4px 12px rgba(0,0,0,0.15);
+}
+.team-modal-logo img{width:100%;height:100%;border-radius:50%;object-fit:cover}
+.team-modal-eyebrow{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--gold-deep);margin-bottom:4px}
+.team-modal-card h2{font-size:32px;color:var(--navy);line-height:1;margin-bottom:4px}
+.team-modal-city{font-size:13px;color:var(--muted)}
+.team-modal-stats{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:28px;
+  background:var(--off-white);border-radius:12px;padding:16px;text-align:center;
+}
+.stat-box span{display:block;font-family:'Bebas Neue';font-size:28px;color:var(--navy);line-height:1.1}
+.stat-box label{font-size:11px;text-transform:uppercase;letter-spacing:0.1em;color:var(--muted);font-weight:600}
+.team-modal-roster h3{font-family:'Bebas Neue';font-size:20px;color:var(--navy);letter-spacing:0.03em;margin-bottom:12px}
+.roster-list{display:flex;flex-direction:column;gap:8px}
+.roster-item{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:10px 14px;background:var(--off-white);border-radius:8px;font-size:14px;
+}
+.roster-item .num{font-family:'Bebas Neue';font-size:18px;color:var(--royal);width:32px}
+.roster-item .name{flex:1;font-weight:600;color:var(--navy)}
+.roster-item .pos{font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;margin-left:8px}
+.roster-item .height{font-size:12px;color:var(--muted);margin-left:12px;width:48px;text-align:right}
+
+/* =========================================================================
+   BRACKET LOGO SIZING FIX
+   ========================================================================= */
+.ticker-team{display:flex;align-items:center;gap:8px}
+.bracket-team-logo{
+  width:24px;height:24px;border-radius:50%;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Bebas Neue';font-size:11px;color:#fff;
+}
+.bracket-team-logo img{width:100%;height:100%;border-radius:50%;object-fit:cover}
+.ticker-team .name{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* =========================================================================
+   MOBILE  — cards slide horizontally instead of overlapping
    ========================================================================= */
 @media (max-width:1024px){
   .competition-overview{grid-template-columns:1fr}
@@ -1022,35 +1111,75 @@ body.static-mode .scroll-indicator{display:none}
 
 @media (max-width:720px){
   .top-bar{padding:12px 16px;gap:12px}
-  .search{display:none}
-  .nav-bar{display:none}
-  .cta-gold{flex-shrink:0;font-size:11px;padding:8px 12px}
 
   .hero{height:560px}
   .hero-content{padding:100px 20px 40px}
   .hero p.subtitle{font-size:15px;line-height:1.5}
   .hero h1{font-size:clamp(44px,12vw,72px)}
 
-  /* FIXED: The shell padding and main content padding work together now */
   .hc-shell{padding:16px 16px 40px;gap:20px;width:100%;max-width:100vw}
   .hc-sidebar{order:-1;position:static}
   .hc-sidebar-head-body{padding:28px 18px 16px}
   .hc-sidebar-head h2{font-size:20px}
   .hc-sidebar-cover{aspect-ratio:16/9}
   .hc-sidebar-logo{width:56px;height:56px;font-size:22px;left:14px;bottom:-22px}
-  
+
   .hc-main{padding:0!important;margin:0!important}
 
   .page-hero{padding:36px 20px;border-radius:12px}
 
   .main,.competition-overview{padding:0;gap:24px}
-  
-  /* FIXED: 2-column grid for News on mobile */
-  .feed-grid{grid-template-columns:1fr 1fr;gap:12px}
-  
-  /* FIXED: 2-column grid for Clips on mobile */
-  .clips-grid{grid-template-columns:1fr 1fr;grid-auto-rows:160px;gap:10px}
-  
+
+  /* ---- FEED: horizontal slide (no overlap) ---- */
+  .feed-grid{
+    display:flex !important;
+    flex-wrap:nowrap !important;
+    grid-template-columns:none !important;
+    gap:12px !important;
+    overflow-x:auto !important;
+    overflow-y:hidden;
+    scroll-snap-type:x mandatory;
+    -webkit-overflow-scrolling:touch;
+    scrollbar-width:none;
+    padding-bottom:8px;
+    width:100% !important;
+    box-sizing:border-box !important;
+  }
+  .feed-grid::-webkit-scrollbar{display:none}
+  .feed-grid > .feed-card{
+    flex:0 0 78% !important;
+    scroll-snap-align:start;
+    max-width:280px;
+  }
+
+  /* ---- CLIPS: horizontal slide ---- */
+  .clips-grid{
+    display:flex !important;
+    flex-wrap:nowrap !important;
+    grid-template-columns:none !important;
+    grid-auto-rows:auto !important;
+    gap:12px !important;
+    overflow-x:auto !important;
+    overflow-y:hidden;
+    scroll-snap-type:x mandatory;
+    -webkit-overflow-scrolling:touch;
+    scrollbar-width:none;
+    padding-bottom:8px;
+    width:100% !important;
+    box-sizing:border-box !important;
+  }
+  .clips-grid::-webkit-scrollbar{display:none}
+  .clips-grid > .clip{
+    flex:0 0 72% !important;
+    height:200px;
+    scroll-snap-align:start;
+  }
+  .clip.wide,.clip.tall{
+    grid-row:auto !important;
+    grid-column:auto !important;
+    height:200px;
+  }
+
   .clips-section{padding:16px 0 40px}
   .section-head{margin-bottom:16px;gap:10px}
   .section-head h2{font-size:26px}
@@ -1090,24 +1219,32 @@ body.static-mode .scroll-indicator{display:none}
 
   .admin-toast{left:16px;right:16px;max-width:none;bottom:16px}
 
-  /* Adjustments for the 2-column cards so text doesn't break */
   .feed-card .body{padding:10px 12px 12px}
   .feed-card .body h3{font-size:16px;line-height:1.15;margin-bottom:4px}
   .feed-card .body .kicker{font-size:9px;margin-bottom:4px}
   .feed-card .body .stats{font-size:10px;gap:6px;flex-wrap:wrap}
-  
-  /* Sidebar socials become inline on mobile */
+
   .hc-sidebar-socials{
-    padding:8px 10px;
-    flex-wrap:nowrap;
-    justify-content:center;
-    overflow-x:auto;
-    scrollbar-width:none;
+    padding:8px 10px;flex-wrap:nowrap;justify-content:center;
+    overflow-x:auto;scrollbar-width:none;
   }
   .hc-sidebar-socials::-webkit-scrollbar{display:none}
   .hc-sidebar-socials .comp-social{width:32px;height:32px;flex-shrink:0}
-  
+
   .competition-overview aside{margin-bottom:16px}
+
+  /* horizontal non-qualifiers too */
+  .bracket-nonq{
+    display:flex !important;
+    flex-wrap:nowrap !important;
+    overflow-x:auto !important;
+    gap:12px !important;
+    scroll-snap-type:x mandatory;
+    scrollbar-width:none;
+    padding-bottom:6px;
+  }
+  .bracket-nonq::-webkit-scrollbar{display:none}
+  .bracket-nonq .team-card{flex:0 0 60% !important;scroll-snap-align:start}
 }
 
 @media (max-width:480px){
@@ -1122,70 +1259,15 @@ body.static-mode .scroll-indicator{display:none}
   .hero h1{font-size:clamp(38px,11vw,60px)}
   .hero p.subtitle{font-size:14px}
 
-  /* Keep 2-column grid on 480px, adjust height */
-  .clips-grid{grid-auto-rows:140px}
-  .clip.wide,.clip.tall{grid-row:auto;grid-column:auto}
+  .feed-grid > .feed-card{flex-basis:84% !important}
+  .clips-grid > .clip{flex-basis:80% !important}
 
   .competition-card-body h3{font-size:22px}
   .competition-card-body p{font-size:13px}
 
   .section-head h2{font-size:22px}
 
-  /* Hide stats on tiny screens to save space in the 2-col grid */
-  .feed-card .body .stats{display:none}
-
   .score-num{font-size:56px}
   .score-team{font-size:16px}
   .score-btns button{min-width:44px;padding:10px 12px;font-size:16px}
-}
-
-/* =========================================================================
-   FIX: Stop mobile grid from bleeding off the right edge
-   ========================================================================= */
-
-@media (max-width: 720px) {
-  /* 1. Force the main wrapper to respect the screen width */
-  .hc-shell {
-    padding-left: 16px !important;
-    padding-right: 16px !important;
-    width: 100% !important;
-    max-width: 100vw !important;
-    overflow-x: hidden !important;
-    box-sizing: border-box !important;
-  }
-  
-  .hc-main {
-    width: 100% !important;
-    max-width: 100% !important;
-    padding: 0 !important;
-    margin: 0 !important;
-  }
-
-  /* 2. Fix the News Grid */
-  .feed-grid {
-    display: grid !important;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
-    width: 100% !important;
-    gap: 12px !important;
-  }
-
-  /* 3. Fix the Clips Grid */
-  .clips-grid {
-    display: grid !important;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
-    width: 100% !important;
-    gap: 12px !important;
-  }
-
-  /* 4. Fix the Competition Overview layout */
-  .competition-overview {
-    width: 100% !important;
-    display: flex !important;
-    flex-direction: column !important;
-    gap: 24px !important;
-  }
-  
-  .competition-overview .overview-feed {
-    width: 100% !important;
-  }
 }

@@ -19,9 +19,7 @@
 
 <header>
   <div class="top-bar">
-
-<span id="liveIndicator" style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--gold);margin-left:8px;opacity:0;transition:opacity .3s;vertical-align:middle" title="Live updates"></span>
-
+    <span id="liveIndicator" style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--gold);margin-left:8px;opacity:0;transition:opacity .3s;vertical-align:middle" title="Live updates"></span>
     <a href="index.html" class="logo">
       <div class="logo-mark"></div>
       HOOP <span class="accent">CONNECT</span>
@@ -219,6 +217,30 @@
 </footer>
 
 </div><!-- /page-wrap -->
+
+<!-- TEAM INFO MODAL -->
+<div class="team-modal" id="teamModal" style="display:none">
+  <div class="team-modal-card">
+    <button type="button" class="team-modal-close" id="teamModalClose" aria-label="Close">&times;</button>
+    <div class="team-modal-head">
+      <div id="teamModalLogo" class="team-modal-logo"></div>
+      <div>
+        <div class="team-modal-eyebrow" id="teamModalGender">Men's Division</div>
+        <h2 class="font-display" id="teamModalName">Team Name</h2>
+        <div class="team-modal-city" id="teamModalCity">City</div>
+      </div>
+    </div>
+    <div class="team-modal-stats">
+      <div class="stat-box"><span id="teamModalWins">0</span><label>Wins</label></div>
+      <div class="stat-box"><span id="teamModalLosses">0</span><label>Losses</label></div>
+      <div class="stat-box"><span id="teamModalRecord">0-0</span><label>Record</label></div>
+    </div>
+    <div class="team-modal-roster">
+      <h3>Roster</h3>
+      <div id="teamModalPlayers"></div>
+    </div>
+  </div>
+</div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="js/config.js"></script>

@@ -49,6 +49,64 @@ function hoopTeamBadge(t, sizeClass){
   return `<div class="logo${cls}" style="background:${hoopEsc(t.color)}">${hoopEsc(t.id)}</div>`;
 }
 
+/* ---------- TEAM MODAL LOGIC ---------- */
+function hoopOpenTeamModal(teamId) {
+  const data = HoopData.load();
+  const comp = HoopData.activeCompetition(data);
+  if(!comp) return;
+  const t = comp.teams.find(x=>x.id===teamId);
+  if(!t) return;
+
+  document.getElementById('teamModalName').textContent = t.name;
+  document.getElementById('teamModalCity').textContent = t.city || 'No city specified';
+  document.getElementById('teamModalGender').textContent = (t.gender || 'Men') + "'s Division";
+  document.getElementById('teamModalWins').textContent = t.wins;
+  document.getElementById('teamModalLosses').textContent = t.losses;
+  document.getElementById('teamModalRecord').textContent = t.wins + '-' + t.losses;
+
+  const logoEl = document.getElementById('teamModalLogo');
+  if(t.logo) {
+    logoEl.innerHTML = `<img src="${hoopEsc(t.logo)}" alt="${hoopEsc(t.name)}" />`;
+    logoEl.style.background = '#fff';
+  } else {
+    logoEl.textContent = t.id;
+    logoEl.style.background = t.color;
+  }
+
+  const rosterEl = document.getElementById('teamModalPlayers');
+  const players = t.players || [];
+  if(players.length === 0) {
+    rosterEl.innerHTML = '<p style="color:var(--muted);font-size:14px">No players listed yet.</p>';
+  } else {
+    rosterEl.innerHTML = `<div class="roster-list">
+      ${players.map(p => `
+        <div class="roster-item">
+          <span class="num">${hoopEsc(p.number || '—')}</span>
+          <span class="name">${hoopEsc(p.name)}</span>
+          <span class="pos">${hoopEsc(p.position || '')}</span>
+          <span class="height">${hoopEsc(p.height || '')}</span>
+        </div>
+      `).join('')}
+    </div>`;
+  }
+
+  document.getElementById('teamModal').style.display = 'flex';
+}
+
+// Attach modal close events once
+document.addEventListener('DOMContentLoaded', () => {
+  const modal = document.getElementById('teamModal');
+  const closeBtn = document.getElementById('teamModalClose');
+  if(modal && closeBtn) {
+    closeBtn.addEventListener('click', () => modal.style.display = 'none');
+    modal.addEventListener('click', (e) => {
+      if(e.target === modal) modal.style.display = 'none';
+    });
+  }
+});
+
+
+/* ---------- COMPETITION CARDS ---------- */
 function hoopRenderCompetitionCards(data){
   const el = document.getElementById('competitionsGrid');
   if(!el) return;
@@ -82,48 +140,53 @@ function hoopRenderCompetitionCards(data){
   }).join('');
 }
 
+/* ---------- TEAM PILLS (STRIP) ---------- */
 function hoopRenderTeamPills(data, comp){
   const el = document.getElementById('teamsScroll');
   if(!el) return;
   el.innerHTML = comp.teams.map(t=>`
-    <div class="team-pill">
+    <div class="team-pill" onclick="hoopOpenTeamModal('${hoopEsc(t.id)}')" style="cursor:pointer">
       ${hoopTeamBadge(t)}
       <div class="name">${hoopEsc(t.name)}</div>
       <div class="rec">${t.wins}W · ${t.losses}L</div>
     </div>`).join('') || '<p style="color:var(--muted);font-size:14px;padding:10px 0">No teams registered yet.</p>';
 }
 
+/* ---------- TEAM CARDS (TEAMS PAGE) ---------- */
 function hoopRenderTeamCards(data, comp){
   const el = document.getElementById('teamsGrid');
   if(!el) return;
   const sorted = hoopSortedTeams(comp.teams);
   el.innerHTML = sorted.map((t,i)=>{
     const players = t.players || [];
-    return `<div class="team-card">
+    return `<div class="team-card" onclick="hoopOpenTeamModal('${hoopEsc(t.id)}')" style="cursor:pointer">
       <span class="seed">${i<8 ? 'Seed '+(i+1) : 'Non-playoff'}</span>
       ${hoopTeamBadge(t)}
       <div class="name">${hoopEsc(t.name)}</div>
+      <div class="rec" style="font-size:10px;text-transform:uppercase;letter-spacing:0.1em;color:var(--gold);margin-top:2px">${hoopEsc(t.gender || 'Men')}</div>
       <div class="rec">${t.wins}W · ${t.losses}L${t.city?' · '+hoopEsc(t.city):''}</div>
-      ${players.length ? `<div class="roster">${players.length} player${players.length===1?'':'s'}: ${players.slice(0,4).map(p=>hoopEsc(p.name)).join(', ')}${players.length>4?'…':''}</div>` : ''}
+      ${players.length ? `<div class="roster">${players.length} player${players.length===1?'':'s'}</div>` : ''}
     </div>`;
   }).join('') || '<p style="color:var(--muted);font-size:14px;padding:10px 0">No teams registered yet.</p>';
 }
 
+/* ---------- STANDINGS ---------- */
 function hoopRenderStandings(data, comp){
   const bodies = [document.getElementById('standingsBody'), document.getElementById('standingsFullBody')];
   const sorted = hoopSortedTeams(comp.teams);
   const leaderDiff = sorted.length ? (sorted[0].wins - sorted[0].losses) : 0;
   const html = sorted.map((t,i)=>{
     const gb = i===0 ? '—' : (( (leaderDiff - (t.wins-t.losses)) /2 ).toFixed(1));
-    return `<tr>
+    return `<tr onclick="hoopOpenTeamModal('${hoopEsc(t.id)}')" style="cursor:pointer">
       <td class="pos${i<3?' top':''}">${i+1}</td>
-      <td><div class="team-cell">${hoopTeamBadge(t,'team-logo')}${hoopEsc(t.name)}</div></td>
+      <td><div class="team-cell">${hoopTeamBadge(t,'team-logo')}${hoopEsc(t.name)}<span style="font-size:10px;color:var(--muted);margin-left:6px">${hoopEsc(t.gender || 'Men')}</span></div></td>
       <td class="w">${t.wins}</td><td class="l">${t.losses}</td><td class="gb">${gb}</td>
     </tr>`;
   }).join('') || `<tr><td colspan="5" style="color:var(--muted);font-size:14px;padding:10px 0">No teams registered yet.</td></tr>`;
   bodies.forEach(b=>{ if(b) b.innerHTML = html; });
 }
 
+/* ---------- TICKER / SCORES ---------- */
 function hoopFormatDate(dateStr){
   if(!dateStr) return '';
   const d = new Date(dateStr+'T00:00:00');
@@ -164,7 +227,6 @@ function hoopRenderTicker(data, comp){
   if(!el) return;
   el.innerHTML = comp.games.map(g=>hoopTickerCardHTML(g, comp.teams)).join('') || `<p style="color:var(--muted);font-size:14px;padding:10px 0">No games yet.</p>`;
 }
-
 function hoopRenderScoresPage(data, comp){
   const liveEl = document.getElementById('liveGrid');
   const finalEl = document.getElementById('finalGrid');
@@ -176,6 +238,7 @@ function hoopRenderScoresPage(data, comp){
   if(upEl) upEl.innerHTML = byStatus('upcoming');
 }
 
+/* ---------- FEATURED / FEED / CLIPS ---------- */
 function hoopRenderFeatured(data, comp){
   const el = document.getElementById('featuredArticle');
   if(!el) return;
@@ -195,7 +258,6 @@ function hoopRenderFeatured(data, comp){
       </div>
     </div>`;
 }
-
 function hoopFeedCardHTML(item, revealClass, tilt){
   const rc = (tilt?' tilt3d':'') + (revealClass ? ' '+revealClass : '');
   return `<article class="feed-card${rc}" data-cat="${hoopEsc(item.cat)}">
@@ -227,7 +289,6 @@ function hoopRenderFeed(data, comp){
   if(scope === 'home' || scope === 'comp-overview') items = items.slice(0,4);
   el.innerHTML = items.map(i=>hoopFeedCardHTML(i, revealClass, tilt)).join('') || '<p style="color:var(--muted);font-size:14px;padding:10px 0">No articles yet.</p>';
 }
-
 function hoopClipHTML(clip, revealClass){
   const sizeClass = clip.size ? ' '+clip.size : '';
   const rc = revealClass ? ' '+revealClass : '';
@@ -260,6 +321,7 @@ function hoopRenderClips(data, comp){
   el.innerHTML = comp.clips.slice(0,limit).map(c=>hoopClipHTML(c, revealClass)).join('') || '<p style="color:var(--muted);font-size:14px;padding:10px 0">No clips yet.</p>';
 }
 
+/* ---------- BRACKET (WITH LOGOS) ---------- */
 function hoopBracketMatchHTML(m, teams){
   if(m.bye){
     const who = m.teamA || m.teamB;
@@ -281,16 +343,21 @@ function hoopBracketMatchHTML(m, teams){
   const aClass = winner ? (winner===m.teamA ? ' winner' : ' loser') : '';
   const bClass = winner ? (winner===m.teamB ? ' winner' : ' loser') : '';
   const badge = isLive ? '<span class="live-dot">LIVE</span>' : isFinal ? '<span>FINAL</span>' : '<span>UPCOMING</span>';
+
+  // Add logos here for bracket matches
+  const logoA = teamA ? hoopTeamBadge(teamA, 'bracket-team-logo') : '';
+  const logoB = teamB ? hoopTeamBadge(teamB, 'bracket-team-logo') : '';
+
   const teamsHtml = (isLive||isFinal)
     ? `<div class="ticker-teams">
-        <div class="ticker-team${aClass}"><span class="name">${hoopEsc(nameA)}</span><span class="score">${m.scoreA}</span></div>
+        <div class="ticker-team${aClass}">${logoA}<span class="name">${hoopEsc(nameA)}</span><span class="score">${m.scoreA}</span></div>
         <span class="ticker-vs">—</span>
-        <div class="ticker-team${bClass}"><span class="name">${hoopEsc(nameB)}</span><span class="score">${m.scoreB}</span></div>
+        <div class="ticker-team${bClass}">${logoB}<span class="name">${hoopEsc(nameB)}</span><span class="score">${m.scoreB}</span></div>
       </div>`
     : `<div class="ticker-teams">
-        <div class="ticker-team"><span class="name">${hoopEsc(nameA)}</span></div>
+        <div class="ticker-team">${logoA}<span class="name">${hoopEsc(nameA)}</span></div>
         <span class="ticker-vs">vs</span>
-        <div class="ticker-team"><span class="name">${hoopEsc(nameB)}</span></div>
+        <div class="ticker-team">${logoB}<span class="name">${hoopEsc(nameB)}</span></div>
       </div>`;
   return `<div class="ticker-card${isLive?' live':''}">
     <div class="ticker-top">${badge}<span>${hoopEsc(m.court||'')}</span></div>
@@ -326,11 +393,13 @@ function hoopRenderBracket(data, comp){
       if(nqWrap) nqWrap.style.display = 'none';
     } else {
       if(nqWrap) nqWrap.style.display = '';
+      // FIXED: Changed from team-pill to team-card
       nqEl.innerHTML = nonQualifiers.map(t=>`
-        <div class="team-pill">
+        <div class="team-card" onclick="hoopOpenTeamModal('${hoopEsc(t.id)}')" style="cursor:pointer">
           ${hoopTeamBadge(t)}
           <div class="name">${hoopEsc(t.name)}</div>
-          <div class="rec">${t.wins}W · ${t.losses}L</div>
+          <div class="rec" style="font-size:10px;text-transform:uppercase;letter-spacing:0.1em;color:var(--gold);margin-top:2px">${hoopEsc(t.gender || 'Men')}</div>
+          <div class="rec">${t.wins}W · ${t.losses}L${t.city?' · '+hoopEsc(t.city):''}</div>
         </div>`).join('');
     }
   }

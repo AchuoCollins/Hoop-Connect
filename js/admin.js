@@ -125,6 +125,7 @@ function renderTeamsTable(){
       <td>${thumb}</td>
       <td>${esc(t.id)}</td>
       <td>${esc(t.name)}</td>
+      <td>${esc(t.gender || 'Men')}</td>
       <td>${t.wins}</td>
       <td>${t.losses}</td>
       <td>${players.length}</td>
@@ -133,7 +134,7 @@ function renderTeamsTable(){
         <button type="button" class="admin-btn-delete" data-delete-team="${esc(t.id)}">Delete</button>
       </td>
     </tr>`;
-  }).join('') || '<tr><td colspan="7" style="color:var(--muted)">No teams yet.</td></tr>';
+  }).join('') || '<tr><td colspan="8" style="color:var(--muted)">No teams yet.</td></tr>';
 
   body.querySelectorAll('[data-edit-team]').forEach(btn=>{
     btn.addEventListener('click',()=>loadTeamIntoForm(btn.dataset.editTeam));
@@ -263,6 +264,9 @@ function loadTeamIntoForm(id){
   document.getElementById('teamCity').value = t.city || '';
   document.getElementById('teamWins').value = t.wins;
   document.getElementById('teamLosses').value = t.losses;
+  const genderEl = document.getElementById('teamGender');
+  if(genderEl) genderEl.value = t.gender || 'Men';
+  
   setTeamLogoPreview(t.logo || '');
   rosterPlayers = (t.players || []).map(p=>Object.assign({}, p));
   resetPlayerFields();
@@ -289,6 +293,8 @@ teamForm.addEventListener('submit', async (e)=>{
   const name = document.getElementById('teamName').value.trim();
   const city = document.getElementById('teamCity').value.trim();
   const color = document.getElementById('teamColor').value;
+  const genderEl = document.getElementById('teamGender');
+  const gender = genderEl ? genderEl.value : 'Men';
   const wins = parseInt(document.getElementById('teamWins').value,10) || 0;
   const losses = parseInt(document.getElementById('teamLosses').value,10) || 0;
   const logo = teamLogoDataUrl;
@@ -297,10 +303,10 @@ teamForm.addEventListener('submit', async (e)=>{
 
   if(editingId){
     const t = activeComp().teams.find(x=>x.id===editingId);
-    if(t){ t.name=name; t.color=color; t.wins=wins; t.losses=losses; t.city=city; t.logo=logo; t.players=players; }
+    if(t){ t.name=name; t.color=color; t.wins=wins; t.losses=losses; t.city=city; t.logo=logo; t.players=players; t.gender=gender; }
   } else {
     if(activeComp().teams.some(t=>t.id===id)){ toast('A team with that ID already exists'); return; }
-    activeComp().teams.push({id, name, color, wins, losses, city, logo, players});
+    activeComp().teams.push({id, name, color, wins, losses, city, logo, players, gender});
   }
   if(!(await persist())) return; renderTeamsTable(); populateTeamSelects(); renderBracketChecklist(); resetTeamForm();
   toast('Team saved');
@@ -312,7 +318,7 @@ teamForm.addEventListener('submit', async (e)=>{
 const scForm = document.getElementById('scForm');
 
 function populateTeamSelects(){
-  const opts = '<option value="">TBD</option>' + activeComp().teams.map(t=>`<option value="${esc(t.id)}">${esc(t.name)}</option>`).join('');
+  const opts = '<option value="">TBD</option>' + activeComp().teams.map(t=>`<option value="${esc(t.id)}">${esc(t.name)} (${esc(t.gender || 'Men')})</option>`).join('');
   ['scTeamA','scTeamB'].forEach(id=>{
     const sel = document.getElementById(id);
     const cur = sel.value;
@@ -330,6 +336,8 @@ function renderGamesTable(){
     if(order[x.status] !== order[y.status]) return order[x.status]-order[y.status];
     return ((x.date||'9999')+(x.time||'')).localeCompare((y.date||'9999')+(y.time||''));
   });
+  
+  // Now includes a Delete button on every row
   ls.innerHTML = all.map(g=>{
     const info = g.status==='upcoming'
       ? esc([g.date,g.time].filter(Boolean).join(' \u00b7 ') || 'TBD')
@@ -339,7 +347,10 @@ function renderGamesTable(){
       <td><span class="status-pill ${esc(g.status)}">${esc(g.status)}</span></td>
       <td>${esc(teamName(g.teamA))} vs ${esc(teamName(g.teamB))}</td>
       <td>${info}</td>
-      <td class="admin-row-actions"><button type="button" class="admin-btn-edit">${label}</button></td>
+      <td class="admin-row-actions">
+        <button type="button" class="admin-btn-edit">${label}</button>
+        <button type="button" class="admin-btn-delete" data-delete-game="${esc(g.id)}">Delete</button>
+      </td>
     </tr>`;
   }).join('') || '<tr><td colspan="4" style="color:var(--muted)">No games yet \u2014 schedule one on the Schedule tab.</td></tr>';
 
@@ -357,12 +368,21 @@ function renderGamesTable(){
       </td>
     </tr>`).join('') || '<tr><td colspan="4" style="color:var(--muted)">Nothing scheduled yet.</td></tr>';
 
-  document.querySelectorAll('[data-open-game]').forEach(r=>r.addEventListener('click',()=>openScoreboard(r.dataset.openGame)));
+  // Attach listeners
+  document.querySelectorAll('[data-open-game]').forEach(r=>r.addEventListener('click',(e)=>{
+    if(e.target.closest('button')) return;
+    openScoreboard(r.dataset.openGame);
+  }));
+  
   document.querySelectorAll('[data-edit-sc]').forEach(b=>b.addEventListener('click',()=>loadScheduleIntoForm(b.dataset.editSc)));
-  document.querySelectorAll('[data-delete-game]').forEach(b=>b.addEventListener('click', async ()=>{
-    if(!confirm('Delete this game?')) return;
+  
+  document.querySelectorAll('[data-delete-game]').forEach(b=>b.addEventListener('click', async (e)=>{
+    e.stopPropagation();
+    if(!confirm('Are you sure you want to delete this game? This cannot be undone.')) return;
     activeComp().games = activeComp().games.filter(g=>g.id!==b.dataset.deleteGame);
-    if(!(await persist())) return; renderGamesTable();
+    if(!(await persist())) return; 
+    renderGamesTable();
+    refreshAll();
     toast('Game deleted');
   }));
 }
