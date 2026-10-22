@@ -1126,3 +1126,159 @@ body.static-mode .scroll-indicator{display:none}
   .score-team{font-size:16px}
   .score-btns button{min-width:44px;padding:10px 12px;font-size:16px}
 }
+
+/* =========================================================================
+   MOBILE REFINEMENTS — appended overrides
+   Fixes real mobile issues without touching desktop.
+   ========================================================================= */
+
+/* Better tablet range — 720 to 960 */
+@media (max-width:960px){
+  .hc-shell{padding:24px 20px 48px}
+}
+
+/* Tighter mobile padding for page heroes */
+@media (max-width:720px){
+  .page-hero{padding:64px 20px 36px}
+  .page-hero h1{font-size:clamp(32px,8vw,52px);margin:10px 0 8px}
+  .page-hero p{font-size:14px;line-height:1.5}
+
+  /* Sidebar socials become inline, not a card */
+  .hc-sidebar-socials{
+    padding:8px 10px;
+    flex-wrap:nowrap;
+    justify-content:center;
+    overflow-x:auto;
+    scrollbar-width:none;
+  }
+  .hc-sidebar-socials::-webkit-scrollbar{display:none}
+  .hc-sidebar-socials .comp-social{
+    width:32px;height:32px;flex-shrink:0;
+  }
+
+  /* Standings gap below the aside in overview */
+  .competition-overview aside{margin-bottom:16px}
+
+  /* Clip grid becomes 2 cols but with taller rows */
+  .clips-grid{
+    grid-template-columns:repeat(2,1fr);
+    grid-auto-rows:160px;
+    gap:10px;
+  }
+  .clip .cap{font-size:15px;bottom:26px;left:10px;right:10px}
+  .clip .clip-stats{bottom:6px;left:10px;right:10px;gap:6px}
+  .clip .clip-stats button,.clip .clip-stats .cstat{font-size:10px;padding:2px 6px}
+  .clip .views{font-size:10px;padding:3px 6px;top:8px;right:8px}
+
+  /* Bracket rounds on mobile */
+  .bracket-round-body{
+    justify-content:flex-start;
+    flex:none;
+    gap:12px;
+  }
+  .bracket-round.round-final .bracket-round-body{gap:12px}
+  .bracket-round h3{margin-bottom:10px}
+
+  /* Feed tabs get a scroll hint */
+  .feed-tabs{padding-right:16px}
+
+  /* Header tightens up */
+  .auth a.admin-link{font-size:12px}
+  .cta-gold{font-size:11px}
+
+  /* Kill the 3D canvas on small screens regardless of static mode */
+  #sceneCanvas{display:none}
+
+  /* Footer spacing */
+  .footer-bottom{gap:8px}
+  .footer-bottom .copyright{font-size:11px}
+}
+
+/* Small phone tweaks (<= 520px) */
+@media (max-width:520px){
+  .top-bar{padding:10px 14px;gap:8px}
+  .logo{font-size:17px}
+  .logo-mark{width:28px;height:28px}
+
+  .hc-shell{padding:16px 14px 40px}
+  .hc-sidebar-head-body{padding:22px 16px}
+
+  /* Single-column clips on narrow phones */
+  .clips-grid{
+    grid-template-columns:1fr;
+    grid-auto-rows:200px;
+  }
+  .clip.wide,.clip.tall{grid-row:auto;grid-column:auto}
+
+  /* Competition cards fully stacked and image smaller */
+  .competition-card-body{padding:18px 16px}
+  .competition-card-body h3{font-size:22px}
+  .competition-card-body p{font-size:13px}
+
+  /* Hero title tighter */
+  .page-hero h1{font-size:clamp(28px,9vw,42px)}
+
+  /* Section headers stack nicely */
+  .section-head{gap:8px}
+  .section-head h2{font-size:22px}
+  .section-head p{font-size:12px}
+
+  /* Scoreboard modal padding */
+  .admin-modal-card{padding:20px 16px}
+  .score-num{font-size:56px}
+  .score-team{font-size:15px}
+  .score-btns button{min-width:44px;padding:10px 10px;font-size:15px}
+  .admin-modal-close{top:8px;right:12px;font-size:24px}
+
+  /* Feed card body */
+  .feed-card .body{padding:11px 12px}
+  .feed-card .body h3{font-size:17px;line-height:1.15}
+  .feed-card .body .stats{font-size:10px;gap:8px}
+
+  /* Standings on mobile */
+  .standings{padding:14px}
+  .standings-head h3{font-size:18px}
+  .standings td,.standings th{padding:8px 3px;font-size:11px}
+
+  /* Team cards */
+  .teams-grid{grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px}
+  .team-card{padding:14px 10px}
+  .team-card .logo{width:46px;height:46px;font-size:18px}
+  .team-card .name{font-size:15px}
+  .team-card .rec{font-size:11px}
+
+  /* Watch section */
+  .watch-empty{padding:32px 14px}
+  .watch-empty strong{font-size:20px}
+  .watch-h2{font-size:18px;margin:24px 0 10px}
+
+  /* Sidebar nav pills tighter */
+  .hc-sidebar-nav{padding:5px;gap:5px}
+  .hc-sidebar-nav a{padding:7px 12px;font-size:11.5px}
+}
+
+/* Tiny phones (<= 400px) */
+@media (max-width:400px){
+  .logo{font-size:16px}
+  .logo-mark{width:26px;height:26px}
+
+  /* Score digits */
+  .score-num{font-size:44px}
+  .score-team{font-size:13px}
+  .score-btns{grid-template-columns:repeat(4,1fr);display:grid}
+  .score-btns button{font-size:14px;padding:9px 6px;min-width:0}
+
+  /* Keep page hero readable */
+  .page-hero h1{font-size:clamp(26px,10vw,36px)}
+  .page-hero{padding:56px 16px 30px}
+
+  /* Section titles */
+  .section-title{font-size:22px}
+  .section-head h2{font-size:20px}
+
+  /* Clip grid rows */
+  .clips-grid{grid-auto-rows:180px}
+
+  /* Team badges */
+  .hc-sidebar-nav a{font-size:11px;padding:6px 10px}
+}
