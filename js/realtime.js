@@ -15,17 +15,16 @@ function hoopInitRealtime(){
           const p = payload.new.payload;
           if(!Array.isArray(p.competitions)) return;
 
-          // Refresh the in-memory cache so any hoopRenderAll() call
-          // reads the fresh data
           if(typeof HoopData !== 'undefined' && HoopData._updateCache){
             HoopData._updateCache(p);
           }
 
-          // Re-render everything on the page
+          /* NEW: let site-settings.js (and anything else listening) re-apply */
+          try { document.dispatchEvent(new CustomEvent('hoop:data-updated')); } catch(e){}
+
           if(typeof hoopRenderAll === 'function') hoopRenderAll();
           if(typeof hoopRenderWatch === 'function') hoopRenderWatch();
 
-          // Optional: tiny visual cue so viewers know something updated
           const ind = document.getElementById('liveIndicator');
           if(ind){
             ind.style.opacity = '1';

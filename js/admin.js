@@ -1095,7 +1095,7 @@ settingsForm.addEventListener('submit', async (e)=>{
     metaDescription: document.getElementById('setMeta').value.trim()
   };
   if(!(await persist())) return;
-  toast('Site settings saved \u2014 refresh public pages to see changes');
+ toast('Site settings saved — open tabs update live');
 });
 document.getElementById('settingsReset').addEventListener('click', async ()=>{
   if(!confirm('Reset all site settings to defaults?')) return;
