@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Competition — Hoop Connect</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/styles.css">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<meta name="description" content="Live scores, standings, bracket, news and clips.">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+</head>
+<body class="static-mode competition-page">
+
+<div class="page-wrap competition-root">
+
+<header>
+  <div class="top-bar">
+
+<span id="liveIndicator" style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--gold);margin-left:8px;opacity:0;transition:opacity .3s;vertical-align:middle" title="Live updates"></span>
+
+    <a href="index.html" class="logo">
+      <div class="logo-mark"></div>
+      HOOP <span class="accent">CONNECT</span>
+    </a>
+    <div class="search">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+      <input type="text" placeholder="Search teams, players, matches..." />
+    </div>
+    <div class="auth">
+      <a href="admin.html" class="admin-link">Admin</a>
+      <a href="competition.html#watch" class="cta-gold"><span class="dot"></span> Watch Live</a>
+    </div>
+  </div>
+  <div class="nav-bar">
+    <nav class="nav-links">
+      <a href="index.html">Home</a>
+      <a href="news.html">News</a>
+      <a href="clips.html">Clips</a>
+      <a href="about.html">About</a>
+      <a href="contact.html">Contact</a>
+    </nav>
+  </div>
+</header>
+
+<div class="hc-shell">
+
+  <aside class="hc-sidebar">
+    <div class="hc-sidebar-card hc-sidebar-head">
+      <div class="hc-sidebar-cover">
+        <img id="compSidebarCover" src="" alt="" />
+        <div class="hc-sidebar-logo" id="compSidebarLogo">HC</div>
+      </div>
+      <div class="hc-sidebar-head-body">
+        <div class="hc-sidebar-eyebrow"><span class="live"></span> <span id="compSidebarSeason">Competition</span></div>
+        <h2 id="compSidebarName">Loading…</h2>
+        <p id="compSidebarDesc"></p>
+      </div>
+    </div>
+
+    <div class="hc-sidebar-socials" id="compSidebarSocials" style="display:none"></div>
+
+    <nav class="hc-sidebar-nav" id="compSidebarNav">
+      <a href="competition.html#overview" data-page="overview">
+        <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M3 12h18M3 6h18M3 18h18"/></svg></span>
+        Overview
+      </a>
+      <a href="competition.html#teams" data-page="teams">
+        <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
+        Teams
+      </a>
+      <a href="competition.html#scores" data-page="scores">
+        <span class="nav-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></span>
+        Live Scores
+      </a>
+      <a href="competition.html#bracket" data-page="bracket">
+        <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M4 4h6v4H4zM14 4h6v4h-6zM4 16h6v4H4zM14 16h6v4h-6zM7 8v8M17 8v8M7 12h10"/></svg></span>
+        Bracket
+      </a>
+      <a href="competition.html#watch" data-page="watch">
+        <span class="nav-icon"><svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg></span>
+        Watch Live
+      </a>
+    </nav>
+
+    <div class="hc-sidebar-foot">
+      <a href="index.html">← All competitions</a>
+      <div style="margin-top:6px">Or check <a href="news.html">News</a> · <a href="clips.html">Clips</a></div>
+    </div>
+  </aside>
+
+  <main class="hc-main mbc-theme">
+
+    <div class="page-hero">
+      <div class="page-hero-inner">
+        <div class="eyebrow"><span class="live"></span> Competition</div>
+        <h1 class="font-display">Loading…</h1>
+        <p></p>
+      </div>
+    </div>
+
+    <section class="competition-overview" data-comp-section="overview" style="margin-top:24px">
+      <div class="overview-feed">
+        <h2 class="section-title">Latest News</h2>
+        <div class="feed-grid" id="feedGrid" data-scope="comp-overview"></div>
+      </div>
+
+      <aside>
+        <div class="standings">
+          <div class="standings-head">
+            <h3>Standings</h3>
+            <a href="#teams">View full table →</a>
+          </div>
+          <table>
+            <thead><tr><th>Pos</th><th>Team</th><th>W</th><th>L</th><th>GB</th></tr></thead>
+            <tbody id="standingsBody"></tbody>
+          </table>
+        </div>
+      </aside>
+
+      <section class="clips-section">
+        <div class="section-head">
+          <div>
+            <h2 class="font-display">From the <span class="accent">Court</span></h2>
+            <p>Short clips, raw moments, zero filter.</p>
+          </div>
+          <a href="clips.html" class="cta-outline" style="border-color:var(--navy);color:var(--navy)">Browse all clips →</a>
+        </div>
+        <div class="clips-grid" id="clipsGrid" data-limit="6"></div>
+      </section>
+    </section>
+
+    <section class="competition-teams" data-comp-section="teams" style="display:none">
+      <h2 class="section-title">Teams</h2>
+      <div class="teams-grid" id="teamsGrid"></div>
+      <div class="standings reveal-lite">
+        <div class="standings-head">
+          <h3>Full Standings</h3>
+          <a href="#bracket">View bracket →</a>
+        </div>
+        <table>
+          <thead><tr><th>Pos</th><th>Team</th><th>W</th><th>L</th><th>GB</th></tr></thead>
+          <tbody id="standingsFullBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="competition-scores" data-comp-section="scores" style="display:none">
+      <h2 class="section-title">Live <span class="accent">Now</span></h2>
+      <div class="scores-grid" id="liveGrid"></div>
+      <h2 class="section-title">Final <span class="accent">Scores</span></h2>
+      <div class="scores-grid" id="finalGrid"></div>
+      <h2 class="section-title"><span class="accent">Upcoming</span> Fixtures</h2>
+      <div class="scores-grid" id="upcomingGrid"></div>
+    </section>
+
+    <section class="competition-bracket" data-comp-section="bracket" style="display:none">
+      <h2 class="section-title">Bracket</h2>
+      <div class="bracket" id="bracketRounds"></div>
+      <div id="bracketNonQualifiersWrap" style="margin-top:32px">
+        <h3 class="section-title-sm">Not in the Bracket</h3>
+        <div class="bracket-nonq" id="bracketNonQualifiers"></div>
+      </div>
+    </section>
+
+    <section class="competition-watch" data-comp-section="watch" style="display:none">
+      <h2 class="section-title">Watch <span class="accent">Live</span></h2>
+      <div id="watchPlayer"></div>
+      <div id="watchInfo"></div>
+      <h2 class="watch-h2">Live &amp; upcoming games</h2>
+      <div class="scores-grid" id="watchGames"></div>
+    </section>
+
+  </main>
+
+</div><!-- /hc-shell -->
+
+<footer>
+  <div class="footer-inner">
+    <div class="footer-col">
+      <a href="index.html" class="logo" style="margin-bottom:14px">
+        <div class="logo-mark"></div>
+        HOOP <span class="accent">CONNECT</span>
+      </a>
+      <p style="font-size:13px;color:rgba(255,255,255,0.6);line-height:1.6;margin-top:14px;max-width:320px">
+        The home for grassroots basketball competitions. Every game. Every clip. Every team — connected.
+      </p>
+    </div>
+    <div class="footer-col">
+      <h4>Explore</h4>
+      <a href="index.html">Home</a>
+      <a href="news.html">News</a>
+      <a href="clips.html">Clips</a>
+      <a href="about.html">About</a>
+      <a href="contact.html">Contact</a>
+      <a href="donate.html">Donate</a>
+    </div>
+    <div class="footer-col">
+      <h4>Contact</h4>
+      <div class="contact"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>media@hoopconnect.cm</div>
+      <div class="contact"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M.057 24l1.687-6.163a11.867 11.867 0 0 1-1.587-5.946C.16 5.335 5.495 0 12.05 0a11.817 11.817 0 0 1 8.413 3.488 11.824 11.824 0 0 1 3.48 8.414c-.003 6.557-5.338 11.892-11.893 11.892a11.9 11.9 0 0 1-5.688-1.448L.057 24z"/></svg>+237 6XX XXX XXX</div>
+      <div class="contact"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>Buea, Cameroon</div>
+    </div>
+    <div class="footer-col">
+      <h4>Follow</h4>
+      <div class="socials" style="margin-left:0;margin-bottom:18px">
+        <a href="#" aria-label="TikTok"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z"/></svg></a>
+        <a href="#" aria-label="Instagram"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg></a>
+      </div>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <div class="copyright">© 2026 Hoop Connect. All rights reserved.</div>
+    <div class="copyright">Privacy · Terms · Press Kit</div>
+  </div>
+</footer>
+
+</div><!-- /page-wrap -->
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/config.js"></script>
+<script src="js/data.js"></script>
+<script src="js/site-settings.js"></script>
+<script src="js/img-fallback.js"></script>
+<script src="js/bracket.js"></script>
+<script src="js/embed.js"></script>
+<script src="js/engagement.js"></script>
+<script src="js/render.js"></script>
+<script src="js/realtime.js"></script>
+<script src="js/competition-router.js"></script>
+<script src="js/lightbox.js"></script>
+<script src="js/watch.js"></script>
+<script src="js/site.js"></script>
+<script src="js/search.js"></script>
+
+<script>
+  HoopData.ready().then(() => {
+    if(typeof hoopRenderAll === 'function') hoopRenderAll();
+    if(typeof hoopRenderWatch === 'function') hoopRenderWatch();
+    if(typeof hoopInitRealtime === 'function') hoopInitRealtime();
+    document.addEventListener('comp:page', function(){
+      if(typeof hoopRenderAll === 'function') hoopRenderAll();
+      if(typeof hoopRenderWatch === 'function') hoopRenderWatch();
+    });
+  });
+</script>
+
+</body>
+</html>

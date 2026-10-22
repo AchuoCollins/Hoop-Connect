@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Admin — Hoop Connect</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/styles.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/config.js"></script>
+<script src="js/data.js"></script>
+<script src="js/img-fallback.js"></script>
+<script src="js/bracket.js"></script>
+<script src="js/embed.js"></script>
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<meta name="robots" content="noindex, nofollow">
+</head>
+<body class="admin-page">
+
+<div class="admin-shell">
+
+  <!-- SIDEBAR -->
+  <aside class="admin-sidebar">
+    <a href="index.html" class="logo" style="font-size:18px">
+      <div class="logo-mark" style="width:28px;height:28px"></div>
+      HOOP <span class="accent">CONNECT</span>
+    </a>
+
+    <div class="admin-comp-selector">
+      <label>Editing Competition</label>
+      <select id="adminCompSelect"></select>
+    </div>
+
+    <button class="admin-tab-btn" data-panel="competitions">Competitions</button>
+    <div class="admin-tab-divider">Content (per competition)</div>
+    <button class="admin-tab-btn active" data-panel="teams">Teams</button>
+    <button class="admin-tab-btn" data-panel="scores">Live Scores</button>
+    <button class="admin-tab-btn" data-panel="schedule">Schedule</button>
+    <button class="admin-tab-btn" data-panel="bracket">Bracket</button>
+    <button class="admin-tab-btn" data-panel="news">News</button>
+    <button class="admin-tab-btn" data-panel="clips">Clips</button>
+    <button class="admin-tab-btn" data-panel="watch">Watch Live</button>
+    <div class="admin-tab-divider">Site</div>
+    <button class="admin-tab-btn" data-panel="settings">Site Settings</button>
+    <a href="index.html" class="back-link">← Back to site</a>
+    <a href="#" class="back-link" id="logoutBtn">Sign out</a>
+
+    <a href="#" class="back-link" id="exportDataBtn">Export data (backup)</a>
+    <a href="#" class="back-link" id="importDataBtn">Import data</a>
+    <input type="file" id="importDataFile" accept="application/json" style="display:none" />
+    <a href="#" class="back-link" id="resetDataBtn">Reset all data</a>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="admin-main">
+
+    <!-- TEAMS PANEL -->
+    <section class="admin-panel active" id="panel-teams">
+      <h2>Teams</h2>
+      <p class="sub">Every team here appears on the competition page team strip, the Teams section, and the standings table.</p>
+
+      <table class="admin-table">
+        <thead><tr><th></th><th>ID</th><th>Name</th><th>W</th><th>L</th><th>Players</th><th></th></tr></thead>
+        <tbody id="teamsTableBody"></tbody>
+      </table>
+
+      <form class="admin-form" id="teamForm">
+        <h3 id="teamFormTitle">Add Team</h3>
+        <input type="hidden" id="teamEditingId" value="" />
+
+        <div class="admin-field">
+          <label>Team Logo</label>
+          <div style="display:flex;align-items:center;gap:14px">
+            <div id="teamLogoPreviewWrap" style="width:64px;height:64px;border-radius:50%;border:2px dashed var(--line-strong);display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0">
+              <span id="teamLogoPlaceholder" style="font-size:11px;color:var(--muted)">No logo</span>
+              <img id="teamLogoPreview" src="" alt="" style="display:none;width:100%;height:100%;object-fit:contain" />
+            </div>
+            <div>
+              <label for="teamLogoFile" class="admin-btn-secondary" style="display:inline-block;cursor:pointer">Upload image</label>
+              <input type="file" id="teamLogoFile" accept="image/*" style="display:none" />
+              <button type="button" class="admin-btn-secondary" id="teamLogoRemove" style="margin-left:6px">Remove</button>
+              <p style="font-size:11px;color:var(--muted);margin-top:6px">Optional — without one, the colored initials below are used instead.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="admin-form-row">
+          <div class="admin-field">
+            <label for="teamId">Team ID (2–4 letters, unique)</label>
+            <input type="text" id="teamId" maxlength="4" placeholder="e.g. MK" required />
+          </div>
+          <div class="admin-field">
+            <label for="teamColor">Initials Color (used if no logo)</label>
+            <input type="color" id="teamColor" value="#0a1f44" />
+          </div>
+        </div>
+        <div class="admin-form-row">
+          <div class="admin-field">
+            <label for="teamName">Team Name</label>
+            <input type="text" id="teamName" placeholder="e.g. Molyko Kings" required />
+          </div>
+          <div class="admin-field">
+            <label for="teamCity">City / Base</label>
+            <input type="text" id="teamCity" placeholder="e.g. Molyko" />
+          </div>
+        </div>
+        <div class="admin-form-row">
+          <div class="admin-field">
+            <label for="teamWins">Wins</label>
+            <input type="number" id="teamWins" min="0" value="0" required />
+          </div>
+          <div class="admin-field">
+            <label for="teamLosses">Losses</label>
+            <input type="number" id="teamLosses" min="0" value="0" required />
+          </div>
+        </div>
+
+        <div class="admin-field">
+          <label>Roster</label>
+          <table class="admin-table" id="rosterTable" style="margin-bottom:10px">
+            <thead><tr><th>#</th><th>Name</th><th>Pos</th><th>Height</th><th></th></tr></thead>
+            <tbody id="rosterTableBody"></tbody>
+          </table>
+          <div class="admin-form-row" style="grid-template-columns:70px 1.6fr 90px 90px;align-items:end">
+            <div class="admin-field" style="margin-bottom:0">
+              <label for="playerNumber">#</label>
+              <input type="text" id="playerNumber" maxlength="3" />
+            </div>
+            <div class="admin-field" style="margin-bottom:0">
+              <label for="playerName">Player name</label>
+              <input type="text" id="playerName" />
+            </div>
+            <div class="admin-field" style="margin-bottom:0">
+              <label for="playerPosition">Position</label>
+              <select id="playerPosition">
+                <option value="">—</option>
+                <option value="PG">PG</option>
+                <option value="SG">SG</option>
+                <option value="SF">SF</option>
+                <option value="PF">PF</option>
+                <option value="C">C</option>
+              </select>
+            </div>
+            <div class="admin-field" style="margin-bottom:0">
+              <label for="playerHeight">Height</label>
+              <input type="text" id="playerHeight" placeholder="6'2&quot;" />
+            </div>
+          </div>
+          <div class="admin-form-actions" style="margin-top:8px">
+            <button type="button" class="admin-btn-secondary" id="playerAddBtn">+ Add Player</button>
+          </div>
+        </div>
+
+        <div class="admin-form-actions">
+          <button type="submit" class="admin-btn-primary">Save Team</button>
+          <button type="button" class="admin-btn-secondary" id="teamFormCancel">Clear</button>
+        </div>
+      </form>
+    </section>
+
+    <!-- LIVE SCORES PANEL -->
+    <section class="admin-panel" id="panel-scores">
+      <h2>Live Scores</h2>
+      <p class="sub">Every game from the Schedule shows up here. Click a game to take it live and open the scoreboard, where you add points with the +1 / +2 / +3 buttons.</p>
+
+      <table class="admin-table">
+        <thead><tr><th>Status</th><th>Matchup</th><th>When / Score</th><th></th></tr></thead>
+        <tbody id="lsTableBody"></tbody>
+      </table>
+    </section>
+
+    <!-- SCHEDULE PANEL -->
+    <section class="admin-panel" id="panel-schedule">
+      <h2>Schedule</h2>
+      <p class="sub">Upcoming games with date, time, venue and round. Use "Start game" once a match tips off to move it to Live Scores.</p>
+
+      <table class="admin-table">
+        <thead><tr><th>Date / Time</th><th>Matchup</th><th>Venue / Round</th><th></th></tr></thead>
+        <tbody id="scTableBody"></tbody>
+      </table>
+
+      <form class="admin-form" id="scForm">
+        <h3 id="scFormTitle">Schedule a Game</h3>
+        <input type="hidden" id="scEditingId" value="" />
+        <div class="admin-form-row">
+          <div class="admin-field">
+            <label for="scTeamA">Team A</label>
+            <select id="scTeamA"></select>
+          </div>
+          <div class="admin-field">
+            <label for="scTeamB">Team B</label>
+            <select id="scTeamB"></select>
+          </div>
+        </div>
+        <div class="admin-form-row">
+          <div class="admin-field">
+            <label for="scDate">Date</label>
+            <input type="date" id="scDate" />
+          </div>
+          <div class="admin-field">
+            <label for="scTime">Time</label>
+            <input type="time" id="scTime" />
+          </div>
+        </div>
+        <div class="admin-form-row">
+          <div class="admin-field">
+            <label for="scVenue">Venue</label>
+            <input type="text" id="scVenue" placeholder="e.g. Court A / Main Court" />
+          </div>
+          <div class="admin-field">
+            <label for="scRound">Round</label>
+            <input type="text" id="scRound" placeholder="e.g. Semifinal, Grand Final" />
+          </div>
+        </div>
+        <div class="admin-field">
+          <label for="scStreamUrl">YouTube livestream link (optional)</label>
+          <input type="url" id="scStreamUrl" placeholder="https://youtube.com/..." />
+        </div>
+        <div class="admin-form-actions">
+          <button type="submit" class="admin-btn-primary">Save to Schedule</button>
+          <button type="button" class="admin-btn-secondary" id="scFormCancel">Clear</button>
+        </div>
+      </form>
+    </section>
+
+    <!-- BRACKET PANEL -->
+    <section class="admin-panel" id="panel-bracket">
+      <h2>Bracket</h2>
+      <p class="sub">
+        Nothing shows on the public Bracket section until you create one here. Pick how many teams go in (2 or more);
+        if the count isn't a power of two, the top seeds get byes. Then enter each match's score and mark it Final —
+        winners advance automatically.
+      </p>
+
+      <div class="admin-form" style="max-width:none;margin-bottom:24px">
+        <h3>Create Bracket</h3>
+        <div class="admin-form-row" style="grid-template-columns:200px 1fr;align-items:end;margin-bottom:14px">
+          <div class="admin-field" style="margin-bottom:0">
+            <label for="bracketTeamCount">Number of teams</label>
+            <input type="number" id="bracketTeamCount" min="2" max="64" value="8" />
+          </div>
+          <p id="bracketCountHint" style="font-size:12px;color:var(--muted);margin:0"></p>
+        </div>
+        <div id="bracketTeamChecklist" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;margin-bottom:14px"></div>
+        <div class="admin-form-actions" style="flex-wrap:wrap">
+          <span id="bracketSelectedCount" style="align-self:center;font-size:13px;color:var(--muted)"></span>
+          <button type="button" class="admin-btn-primary" id="bracketUseSelectionBtn">Create from selected teams</button>
+          <button type="button" class="admin-btn-secondary" id="bracketRegenBtn">Auto-pick top teams by standings</button>
+          <button type="button" class="admin-btn-danger" id="bracketDeleteBtn">Delete bracket</button>
+        </div>
+      </div>
+
+      <div id="bracketPanelBody"></div>
+    </section>
+
+    <!-- NEWS PANEL -->
+    <section class="admin-panel" id="panel-news">
+      <h2>News & Recaps</h2>
+      <p class="sub">Appears on the competition page and the full News page.</p>
+
+      <table class="admin-table">
+        <thead><tr><th></th><th>Title</th><th>Category</th><th></th></tr></thead>
+        <tbody id="newsTableBody"></tbody>
+      </table>
+
+      <form class="admin-form" id="newsForm">
+        <h3 id="newsFormTitle">Add Article</h3>
+        <input type="hidden" id="newsEditingId" value="" />
+        <div class="admin-form-row">
+          <div class="admin-field">
+            <label for="newsCat">Category</label>
+            <select id="newsCat">
+              <option value="highlights">Highlights</option>
+              <option value="recaps">Recaps</option>
+              <option value="team">Team News</option>
+            </select>
+          </div>
+          <div class="admin-field admin-field-check" style="align-self:end;padding-bottom:9px">
+            <input type="checkbox" id="newsFeatured" />
+            <label for="newsFeatured" style="margin:0">Feature on competition page</label>
+          </div>
+        </div>
+        <div class="admin-field">
+          <label for="newsKicker">Kicker</label>
+          <input type="text" id="newsKicker" placeholder="e.g. Molyko Kings · #23" />
+        </div>
+        <div class="admin-field">
+          <label for="newsTitle">Title</label>
+          <input type="text" id="newsTitle" required />
+        </div>
+        <div class="admin-field">
+          <label for="newsBody">Body (used only for the featured article)</label>
+          <textarea id="newsBody"></textarea>
+        </div>
+        <div class="admin-field">
+          <label for="newsImg">Image URL</label>
+          <input type="text" id="newsImg" placeholder="https://..." />
+        </div>
+        <div class="admin-form-row">
+          <div class="admin-field">
+            <label for="newsDur">Duration</label>
+            <input type="text" id="newsDur" placeholder="1:18" />
+          </div>
+          <div class="admin-field">
+            <label for="newsViews">Views</label>
+            <input type="number" min="0" id="newsViews" value="0" />
+          </div>
+        </div>
+        <div class="admin-form-row">
+          <div class="admin-field">
+            <label for="newsLikes">Likes</label>
+            <input type="number" min="0" id="newsLikes" value="0" />
+          </div>
+          <div class="admin-field">
+            <label for="newsDislikes">Dislikes</label>
+            <input type="number" min="0" id="newsDislikes" value="0" />
+          </div>
+          <div class="admin-field">
+            <label for="newsComments">Comments</label>
+            <input type="number" min="0" id="newsComments" value="0" />
+          </div>
+        </div>
+        <div class="admin-form-actions">
+          <button type="submit" class="admin-btn-primary">Save Article</button>
+          <button type="button" class="admin-btn-secondary" id="newsFormCancel">Clear</button>
+        </div>
+      </form>
+    </section>
+
+    <!-- CLIPS PANEL -->
+    <section class="admin-panel" id="panel-clips">
+      <h2>Clips</h2>
+      <p class="sub">Appears on the competition page clips section and the full Clips page.</p>
+
+      <table class="admin-table">
+        <thead><tr><th></th><th>Caption</th><th>Views</th><th></th></tr></thead>
+        <tbody id="clipsTableBody"></tbody>
+      </table>
+
+      <form class="admin-form" id="clipForm">
+        <h3 id="clipFormTitle">Add Clip</h3>
+        <input type="hidden" id="clipEditingId" value="" />
+        <input type="hidden" id="clipResolvedImg" value="" />
+        <input type="hidden" id="clipResolvedSourceUrl" value="" />
+
+        <div class="admin-field">
+          <label for="clipCap">Caption</label>
+          <input type="text" id="clipCap" required />
+        </div>
+        <div class="admin-form-row">
+          <div class="admin-field">
+            <label for="clipViews">Views</label>
+            <input type="number" min="0" id="clipViews" value="0" />
+          </div>
+          <div class="admin-field">
+            <label for="clipSize">Card Size</label>
+            <select id="clipSize">
+              <option value="">Normal</option>
+              <option value="tall">Tall</option>
+              <option value="wide">Wide</option>
+            </select>
+          </div>
+        </div>
+        <div class="admin-form-row">
+          <div class="admin-field">
+            <label for="clipLikes">Likes</label>
+            <input type="number" min="0" id="clipLikes" value="0" />
+          </div>
+          <div class="admin-field">
+            <label for="clipDislikes">Dislikes</label>
+            <input type="number" min="0" id="clipDislikes" value="0" />
+          </div>
+          <div class="admin-field">
+            <label for="clipComments">Comments</label>
+            <input type="number" min="0" id="clipComments" value="0" />
+          </div>
+        </div>
+
+        <div class="admin-field">
+          <label>Clip Source</label>
+          <div style="display:flex;gap:16px;margin-bottom:10px">
+            <label class="admin-field-check"><input type="radio" name="clipSourceMode" value="upload" checked /> Image</label>
+            <label class="admin-field-check"><input type="radio" name="clipSourceMode" value="link" /> TikTok video</label>
+          </div>
+
+          <div id="clipUploadMode">
+            <input type="file" id="clipImageFile" accept="image/*" />
+          </div>
+          <div id="clipLinkMode" style="display:none">
+            <input type="url" id="clipSourceUrlInput" placeholder="https://www.tiktok.com/@yourpage/video/..." />
+            <button type="button" class="admin-btn-secondary" id="clipFetchPreviewBtn" style="margin-top:8px">Fetch TikTok cover image</button>
+            <p id="clipFetchStatus" style="font-size:12px;color:var(--muted);margin-top:6px"></p>
+            <p style="font-size:11px;color:var(--muted);margin-top:4px">
+              Visitors see TikTok's cover image and tap it to open the video on TikTok. TikTok's own image links
+              expire after a few days, so if the fetch says so (or fails), upload a cover image below to keep it permanent.
+            </p>
+            <label style="display:block;margin-top:10px;font-size:12px;color:var(--muted)">Cover image (optional, overrides the fetched one)</label>
+            <input type="file" id="clipCoverFile" accept="image/*" />
+          </div>
+
+          <div id="clipImgPreviewWrap" style="margin-top:12px;display:none">
+            <img id="clipImgPreview" src="" alt="" style="max-width:220px;max-height:140px;border-radius:8px;border:1px solid var(--line-strong)" />
+          </div>
+        </div>
+
+        <div class="admin-form-actions">
+          <button type="submit" class="admin-btn-primary">Save Clip</button>
+          <button type="button" class="admin-btn-secondary" id="clipFormCancel">Clear</button>
+        </div>
+      </form>
+    </section>
+
+    <!-- WATCH LIVE PANEL -->
+    <section class="admin-panel" id="panel-watch">
+      <h2>Watch Live</h2>
+      <p class="sub">Controls the Watch Live section for this competition. Stream on YouTube and/or TikTok and paste the links here. YouTube plays inside the page; TikTok lives open on TikTok through a button, because TikTok doesn't allow live streams to be embedded.</p>
+
+      <form class="admin-form" id="watchForm">
+        <h3>Stream</h3>
+        <div class="admin-field">
+          <label for="watchTitle">Stream title</label>
+          <input type="text" id="watchTitle" placeholder="e.g. Semifinal &middot; Molyko Kings vs Campus Heat" />
+        </div>
+        <div class="admin-field">
+          <label for="watchUrl">YouTube link (embeds on the page)</label>
+          <input type="url" id="watchUrl" placeholder="https://www.youtube.com/watch?v=..." />
+          <p id="watchUrlHint" style="font-size:12px;color:var(--muted);margin-top:6px"></p>
+        </div>
+        <div class="admin-field">
+          <label for="watchTiktokUrl">TikTok link (optional)</label>
+          <input type="url" id="watchTiktokUrl" placeholder="https://www.tiktok.com/@yourpage/live" />
+          <p id="watchTiktokHint" style="font-size:12px;color:var(--muted);margin-top:6px"></p>
+        </div>
+        <div class="admin-field">
+          <label for="watchLive">Status</label>
+          <select id="watchLive">
+            <option value="0">Offline (shows the OFFLINE badge)</option>
+            <option value="1">Live now (shows the LIVE NOW badge)</option>
+          </select>
+        </div>
+        <div class="admin-field">
+          <label for="watchDesc">Description (optional)</label>
+          <textarea id="watchDesc" placeholder="What viewers are about to watch, commentators, start time..."></textarea>
+        </div>
+        <div class="admin-form-actions">
+          <button type="submit" class="admin-btn-primary">Save</button>
+          <button type="button" class="admin-btn-danger" id="watchClear">Clear stream</button>
+          <a href="competition.html" target="_blank" class="admin-btn-secondary" style="text-decoration:none">Open competition page</a>
+        </div>
+      </form>
+    </section>
+
+    <!-- SITE SETTINGS PANEL -->
+    <section class="admin-panel" id="panel-settings">
+      <h2>Site Settings</h2>
+      <p class="sub">Global branding, contact info, and homepage content. Applies across every page.</p>
+
+      <form class="admin-form" id="settingsForm">
+        <h3>Branding</h3>
+        <div class="admin-form-row">
+          <div class="admin-field">
+            <label for="setTitle">Site Title</label>
+            <input type="text" id="setTitle" />
+          </div>
+          <div class="admin-field">
+            <label for="setTagline">Tagline</label>
+            <input type="text" id="setTagline" />
+          </div>
+        </div>
+        <div class="admin-form-row">
+          <div class="admin-field">
+            <label for="setPrimaryColor">Primary Color</label>
+            <input type="color" id="setPrimaryColor" />
+          </div>
+          <div class="admin-field">
+            <label for="setAccentColor">Accent Color</label>
+            <input type="color" id="setAccentColor" />
+          </div>
+        </div>
+
+        <h3>Homepage Hero</h3>
+        <div class="admin-field">
+          <label for="setHeroTitle">Hero Title (last word gets accent color)</label>
+          <input type="text" id="setHeroTitle" />
+        </div>
+        <div class="admin-field">
+          <label for="setHeroSubtitle">Hero Subtitle</label>
+          <textarea id="setHeroSubtitle"></textarea>
+        </div>
+
+        <h3>Contact Info (footer)</h3>
+        <div class="admin-form-row">
+          <div class="admin-field">
+            <label for="setEmail">Email</label>
+            <input type="email" id="setEmail" />
+          </div>
+          <div class="admin-field">
+            <label for="setPhone">Phone</label>
+            <input type="text" id="setPhone" />
+          </div>
+          <div class="admin-field">
+            <label for="setLocation">Location</label>
+            <input type="text" id="setLocation" />
+          </div>
+        </div>
+
+        <h3>Social Links</h3>
+        <div class="admin-form-row">
+          <div class="admin-field">
+            <label for="setTikTok">TikTok URL</label>
+            <input type="url" id="setTikTok" />
+          </div>
+          <div class="admin-field">
+            <label for="setInstagram">Instagram URL</label>
+            <input type="url" id="setInstagram" />
+          </div>
+        </div>
+
+        <h3>SEO</h3>
+        <div class="admin-field">
+          <label for="setMeta">Meta Description</label>
+          <textarea id="setMeta"></textarea>
+        </div>
+
+        <div class="admin-form-actions">
+          <button type="submit" class="admin-btn-primary">Save Settings</button>
+          <button type="button" class="admin-btn-secondary" id="settingsReset">Reset to Defaults</button>
+        </div>
+      </form>
+    </section>
+
+    <!-- COMPETITIONS PANEL -->
+    <section class="admin-panel" id="panel-competitions">
+      <h2>Competitions</h2>
+      <p class="sub">Each competition has its own teams, games, news, clips, bracket, stream, and socials. Adding one here creates a fully separate space.</p>
+
+      <table class="admin-table">
+        <thead><tr><th></th><th>Name</th><th>Season</th><th>Status</th><th></th></tr></thead>
+        <tbody id="competitionsTableBody"></tbody>
+      </table>
+
+      <form class="admin-form" id="competitionForm">
+        <h3 id="competitionFormTitle">Add Competition</h3>
+        <input type="hidden" id="competitionEditingId" value="" />
+        <div class="admin-form-row">
+          <div class="admin-field">
+            <label for="compId">ID (lowercase, no spaces)</label>
+            <input type="text" id="compId" placeholder="e.g. mbc" required />
+          </div>
+          <div class="admin-field">
+            <label for="compSeason">Season</label>
+            <input type="text" id="compSeason" placeholder="e.g. Season 03" />
+          </div>
+        </div>
+        <div class="admin-field">
+          <label for="compName">Name</label>
+          <input type="text" id="compName" placeholder="e.g. Molyko Basketball Challenge" required />
+        </div>
+        <div class="admin-field">
+          <label for="compTagline">Tagline</label>
+          <input type="text" id="compTagline" />
+        </div>
+        <div class="admin-field">
+          <label for="compDescription">Description (shown on the homepage card)</label>
+          <textarea id="compDescription"></textarea>
+        </div>
+        <div class="admin-form-row">
+          <div class="admin-field">
+            <label for="compCover">Cover Image URL</label>
+            <input type="text" id="compCover" placeholder="images/cover.jpeg" />
+          </div>
+          <div class="admin-field admin-field-check" style="align-self:end;padding-bottom:9px">
+            <input type="checkbox" id="compActive" checked />
+            <label for="compActive" style="margin:0">Active (visible on homepage)</label>
+          </div>
+        </div>
+
+        <h3 style="margin-top:20px">Social links</h3>
+        <div class="admin-form-row">
+          <div class="admin-field">
+            <label for="compTiktok">TikTok URL</label>
+            <input type="url" id="compTiktok" placeholder="https://tiktok.com/@..." />
+          </div>
+          <div class="admin-field">
+            <label for="compInstagram">Instagram URL</label>
+            <input type="url" id="compInstagram" placeholder="https://instagram.com/..." />
+          </div>
+        </div>
+        <div class="admin-form-row">
+          <div class="admin-field">
+            <label for="compX">X (Twitter) URL</label>
+            <input type="url" id="compX" placeholder="https://x.com/..." />
+          </div>
+          <div class="admin-field">
+            <label for="compYoutube">YouTube URL</label>
+            <input type="url" id="compYoutube" placeholder="https://youtube.com/@..." />
+          </div>
+        </div>
+        <div class="admin-field">
+          <label for="compFacebook">Facebook URL</label>
+          <input type="url" id="compFacebook" placeholder="https://facebook.com/..." />
+        </div>
+
+        <div class="admin-form-actions">
+          <button type="submit" class="admin-btn-primary">Save Competition</button>
+          <button type="button" class="admin-btn-secondary" id="competitionFormCancel">Clear</button>
+        </div>
+      </form>
+    </section>
+
+  </main>
+</div>
+
+
+<!-- SCOREBOARD MODAL -->
+<div class="admin-modal" id="scoreModal" style="display:none">
+  <div class="admin-modal-card">
+    <button type="button" class="admin-modal-close" id="scoreModalClose" aria-label="Close">&times;</button>
+    <div class="admin-modal-status"><span class="status-pill live" id="scoreModalPill">live</span></div>
+    <div class="score-board">
+      <div class="score-side">
+        <div class="score-team" id="smNameA">Team A</div>
+        <div class="score-num" id="smScoreA">0</div>
+        <div class="score-btns">
+          <button type="button" data-add="A:1">+1</button>
+          <button type="button" data-add="A:2">+2</button>
+          <button type="button" data-add="A:3">+3</button>
+          <button type="button" class="undo" data-add="A:-1">&minus;1</button>
+        </div>
+      </div>
+      <div class="score-dash">&mdash;</div>
+      <div class="score-side">
+        <div class="score-team" id="smNameB">Team B</div>
+        <div class="score-num" id="smScoreB">0</div>
+        <div class="score-btns">
+          <button type="button" data-add="B:1">+1</button>
+          <button type="button" data-add="B:2">+2</button>
+          <button type="button" data-add="B:3">+3</button>
+          <button type="button" class="undo" data-add="B:-1">&minus;1</button>
+        </div>
+      </div>
+    </div>
+    <div class="admin-field" style="margin-top:18px">
+      <label for="smMeta">Quarter / clock (shown on the ticker)</label>
+      <input type="text" id="smMeta" placeholder="Q2 &middot; 4:30" />
+    </div>
+    <p id="smNote" style="font-size:12px;color:var(--muted);margin:0 0 4px"></p>
+    <div class="admin-form-actions" style="justify-content:space-between;flex-wrap:wrap">
+      <button type="button" class="admin-btn-secondary" id="smBack">Move back to schedule</button>
+      <button type="button" class="admin-btn-primary" id="smEnd">End game (Final)</button>
+    </div>
+  </div>
+</div>
+
+<div class="admin-toast" id="adminToast"></div>
+
+<script>
+(async function(){
+  const { data: { session } } = await hoopSB.auth.getSession();
+  if(!session){
+    window.location.href = 'admin-login.html';
+    return;
+  }
+  const s = document.createElement('script');
+  s.src = 'js/admin.js';
+  document.body.appendChild(s);
+})();
+</script>
+
+
+<script>
+document.getElementById('logoutBtn').addEventListener('click', async (e)=>{
+  e.preventDefault();
+  await hoopSB.auth.signOut();
+  window.location.href = 'admin-login.html';
+});
+</script>
+
+</body>
+</html>

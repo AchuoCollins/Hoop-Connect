@@ -1,0 +1,199 @@
+/* =========================================================
+   DATA.JS — shared data store for Hoop Connect
+   ========================================================= */
+const HOOP_STORAGE_KEY = 'hoopconnect_data_v1';
+const HOOP_ACTIVE_COMP_KEY = 'hoopconnect_active_comp';
+
+const HOOP_DEFAULT_SITE = {
+  title: 'Hoop Connect',
+  tagline: 'The home for grassroots basketball competitions',
+  heroTitle: 'Every Court. Every Competition.',
+  heroSubtitle: "Hoop Connect is where local basketball competitions get a home online — live scores, brackets, news and clips, all in one place. Pick a competition below to follow along.",
+  contactEmail: 'media@hoopconnect.cm',
+  contactPhone: '+237 6XX XXX XXX',
+  contactLocation: 'Buea, Cameroon',
+  socialTikTok: '#',
+  socialInstagram: '#',
+  metaDescription: 'Hoop Connect is the home for grassroots basketball competitions — live scores, brackets, news and clips, all in one place.',
+  primaryColor: '#0a1f44',
+  accentColor: '#ff7a3d'
+};
+
+const HOOP_DEFAULT_MBC = {
+  id: 'mbc',
+  name: 'Molyko Basketball Challenge',
+  season: 'Season 03',
+  tagline: "Buea's home-grown basketball tournament",
+  description: "Buea's home-grown basketball tournament — men's and women's divisions, live scores, a full bracket, and courtside clips.",
+  coverImg: 'images/mbc-cover.jpeg',
+  active: true,
+  socials: {
+    tiktok: '',
+    instagram: '',
+    x: '',
+    youtube: '',
+    facebook: ''
+  },
+  teams: [
+    {id:'MK', name:'Molyko Kings',     color:'#0a1f44', wins:0, losses:0, city:'Molyko', logo:'', players:[]},
+    {id:'CH', name:'Campus Heat',      color:'#1e6bff', wins:0, losses:0, city:'Molyko', logo:'', players:[]},
+    {id:'BB', name:'Buea Ballers',     color:'#dc2626', wins:0, losses:0, city:'Buea', logo:'', players:[]},
+    {id:'VU', name:'Vets United',      color:'#7c3aed', wins:0, losses:0, city:'Molyko', logo:'', players:[]},
+    {id:'RF', name:'Rookies FC',       color:'#ea580c', wins:0, losses:0, city:'Molyko', logo:'', players:[]},
+    {id:'LL', name:'Limbe Lions',      color:'#059669', wins:0, losses:0, city:'Limbe', logo:'', players:[]},
+    {id:'M4', name:'Mile 4 Mavs',      color:'#db2777', wins:0, losses:0, city:'Mile 4', logo:'', players:[]},
+    {id:'DB', name:'Down Beach Dawgs', color:'#475569', wins:0, losses:0, city:'Down Beach', logo:'', players:[]},
+    {id:'SB', name:'Soppo Ballers',    color:'#b91c1c', wins:0, losses:0, city:'Soppo', logo:'', players:[]},
+    {id:'BC', name:'Bonduma Crew',     color:'#0891b2', wins:0, losses:0, city:'Bonduma', logo:'', players:[]}
+  ],
+  games: [],
+  news: [
+    {id:'n1', cat:'recaps',     featured:true,
+      kicker:'MBC Recap · Semifinals',
+      title:'From 18 Down to Overtime: The Comeback That Shook Molyko',
+      body:'Down by 18 at the half, Buea Ballers flipped the script with a 32–10 third quarter — capped by a buzzer-beater from captain Enow "The Engine" Tanyi. A semifinal for the history books.',
+      img:'https://image.qwenlm.ai/public_source/4e63b6e8-d362-4f85-8178-95d0826c425e/1d9dee80a-a304-4484-9a6b-feae973b7c93.png',
+      dur:'2:12', views:12400, likes:842, dislikes:24, comments:128},
+    {id:'n2', cat:'highlights', kicker:'Molyko Kings · #23',
+      title:'Ankle-Breaker in the Paint — The Move of the Night',
+      img:'https://image.qwenlm.ai/public_source/4e63b6e8-d362-4f85-8178-95d0826c425e/1f247a209-331a-4ddf-9f2d-7139f1dab4e6.png',
+      dur:'0:42', views:8200, likes:612, dislikes:15, comments:44},
+    {id:'n3', cat:'recaps', kicker:'Semifinal · Court A',
+      title:'Swish City: Top 10 Shots from Last Night',
+      img:'https://image.qwenlm.ai/public_source/4e63b6e8-d362-4f85-8178-95d0826c425e/16a1d25d9-5a57-4d55-a879-a4d8b108404a.png',
+      dur:'1:18', views:15700, likes:1100, dislikes:31, comments:92},
+    {id:'n4', cat:'team', kicker:'Rookies FC · Feature',
+      title:'From the Streets of Molyko to the Semifinals',
+      img:'https://image.qwenlm.ai/public_source/4e63b6e8-d362-4f85-8178-95d0826c425e/1ee07f4a1-a13c-465f-9de9-6ba3cd95ca65.png',
+      dur:'2:04', views:5400, likes:388, dislikes:9, comments:27},
+    {id:'n5', cat:'highlights', kicker:'Campus Heat · #7',
+      title:'Posterized: The Dunk That Silenced the Crowd',
+      img:'https://image.qwenlm.ai/public_source/4e63b6e8-d362-4f85-8178-95d0826c425e/17eaac1f9-52b7-4ee3-a281-89bdeb92f383.png',
+      dur:'0:58', views:22100, likes:2300, dislikes:41, comments:176},
+    {id:'n6', cat:'team', kicker:'Vets United · Sideline',
+      title:"Coach's Corner: Why Vets United Trust the Grind",
+      img:'https://image.qwenlm.ai/public_source/4e63b6e8-d362-4f85-8178-95d0826c425e/1a800d45e-9587-449f-a7e9-7be280fcbf82.png',
+      dur:'1:36', views:4100, likes:240, dislikes:6, comments:19}
+  ],
+  clips: [
+    {id:'c1', size:'tall', cap:'The Flight — #23 Takes Off', views:48200, likes:3100, dislikes:45, comments:210, img:'https://image.qwenlm.ai/public_source/4e63b6e8-d362-4f85-8178-95d0826c425e/13c55563c-e3eb-4923-9e0a-cbe829b34841.png', sourceUrl:''},
+    {id:'c2', size:'',     cap:'Nothing But Net', views:12800, likes:940, dislikes:18, comments:62, img:'https://image.qwenlm.ai/public_source/4e63b6e8-d362-4f85-8178-95d0826c425e/16a1d25d9-5a57-4d55-a879-a4d8b108404a.png', sourceUrl:''},
+    {id:'c3', size:'',     cap:'Crossover > Bucket', views:22100, likes:1650, dislikes:22, comments:88, img:'https://image.qwenlm.ai/public_source/4e63b6e8-d362-4f85-8178-95d0826c425e/17eaac1f9-52b7-4ee3-a281-89bdeb92f383.png', sourceUrl:''},
+    {id:'c4', size:'',     cap:'Handle Check', views:9400, likes:710, dislikes:12, comments:38, img:'https://image.qwenlm.ai/public_source/4e63b6e8-d362-4f85-8178-95d0826c425e/1f247a209-331a-4ddf-9f2d-7139f1dab4e6.png', sourceUrl:''},
+    {id:'c5', size:'wide', cap:'Molyko at Golden Hour', views:31600, likes:2400, dislikes:33, comments:145, img:'https://image.qwenlm.ai/public_source/4e63b6e8-d362-4f85-8178-95d0826c425e/1ee07f4a1-a13c-465f-9de9-6ba3cd95ca65.png', sourceUrl:''},
+    {id:'c6', size:'',     cap:'Team Energy', views:18900, likes:1420, dislikes:21, comments:96, img:'https://image.qwenlm.ai/public_source/4e63b6e8-d362-4f85-8178-95d0826c425e/1d9dee80a-a304-4484-9a6b-feae973b7c93.png', sourceUrl:''},
+    {id:'c7', size:'',     cap:'One Team. One Dream.', views:7200, likes:520, dislikes:8, comments:29, img:'https://image.qwenlm.ai/public_source/4e63b6e8-d362-4f85-8178-95d0826c425e/129dc4dce-ebba-4514-86ff-4ab5e097f9be.png', sourceUrl:''},
+    {id:'c8', size:'',     cap:"Coach's Corner", views:5800, likes:410, dislikes:7, comments:24, img:'https://image.qwenlm.ai/public_source/4e63b6e8-d362-4f85-8178-95d0826c425e/1a800d45e-9587-449f-a7e9-7be280fcbf82.png', sourceUrl:''},
+    {id:'c9', size:'',     cap:'The Prize Awaits', views:41300, likes:2900, dislikes:38, comments:190, img:'https://image.qwenlm.ai/public_source/4e63b6e8-d362-4f85-8178-95d0826c425e/141447302-14bb-4a0a-8e74-9f417d1b9689.png', sourceUrl:''}
+  ],
+  bracket: null,
+  watch: {title:'', url:'', tiktokUrl:'', live:false, description:''}
+};
+
+const HOOP_DEFAULTS = {
+  site: HOOP_DEFAULT_SITE,
+  competitions: [HOOP_DEFAULT_MBC]
+};
+
+function hoopMigrate(raw){
+  if(!raw || typeof raw !== 'object') return null;
+  if(Array.isArray(raw.competitions)) return raw;
+
+  const isOld = Array.isArray(raw.teams) || Array.isArray(raw.games) ||
+                Array.isArray(raw.news)  || Array.isArray(raw.clips);
+  if(!isOld) return null;
+
+  const mbc = Object.assign({}, HOOP_DEFAULT_MBC, {
+    teams: Array.isArray(raw.teams) ? raw.teams : HOOP_DEFAULT_MBC.teams,
+    games: Array.isArray(raw.games) ? raw.games : [],
+    news:  Array.isArray(raw.news)  ? raw.news  : HOOP_DEFAULT_MBC.news,
+    clips: Array.isArray(raw.clips) ? raw.clips : HOOP_DEFAULT_MBC.clips,
+    bracket: (raw.bracket && typeof raw.bracket === 'object') ? raw.bracket : null,
+    watch: Object.assign({title:'', url:'', tiktokUrl:'', live:false, description:''}, raw.watch || {})
+  });
+
+  return {
+    site: Object.assign({}, HOOP_DEFAULT_SITE, raw.site || {}),
+    competitions: [mbc]
+  };
+}
+
+const HoopData = {
+  load(){
+    try{
+      const raw = localStorage.getItem(HOOP_STORAGE_KEY);
+      if(!raw){
+        return JSON.parse(JSON.stringify(HOOP_DEFAULTS));
+      }
+      let parsed = JSON.parse(raw);
+      const migrated = hoopMigrate(parsed);
+      if(migrated){
+        try{ localStorage.setItem(HOOP_STORAGE_KEY, JSON.stringify(migrated)); }catch(e){}
+        parsed = migrated;
+      }
+      return {
+        site: Object.assign({}, HOOP_DEFAULT_SITE, parsed.site || {}),
+        competitions: Array.isArray(parsed.competitions) && parsed.competitions.length
+          ? parsed.competitions
+          : [JSON.parse(JSON.stringify(HOOP_DEFAULT_MBC))]
+      };
+    }catch(e){
+      return JSON.parse(JSON.stringify(HOOP_DEFAULTS));
+    }
+  },
+
+  save(data){
+    try{ localStorage.setItem(HOOP_STORAGE_KEY, JSON.stringify(data)); return true; }
+    catch(e){ return false; }
+  },
+
+  resetToDefaults(){
+    try{
+      localStorage.removeItem(HOOP_STORAGE_KEY);
+      localStorage.removeItem(HOOP_ACTIVE_COMP_KEY);
+    }catch(e){}
+  },
+
+  getCompetition(data, id){
+    if(!data || !Array.isArray(data.competitions)) return null;
+    if(!id) return data.competitions[0] || null;
+    return data.competitions.find(c=>c.id===id) || null;
+  },
+
+  activeCompetitionId(){
+    const params = new URLSearchParams(window.location.search);
+    const fromUrl = params.get('id');
+    if(fromUrl) return fromUrl;
+    try{
+      const stored = localStorage.getItem(HOOP_ACTIVE_COMP_KEY);
+      if(stored) return stored;
+    }catch(e){}
+    return null;
+  },
+
+  setActiveCompetitionId(id){
+    try{ localStorage.setItem(HOOP_ACTIVE_COMP_KEY, id); }catch(e){}
+  },
+
+  activeCompetition(data){
+    const id = this.activeCompetitionId();
+    const comp = this.getCompetition(data, id);
+    if(comp) return comp;
+    const firstActive = (data.competitions || []).find(c=>c.active) || (data.competitions||[])[0];
+    return firstActive || null;
+  },
+
+  teamById(teams, id){
+    return (teams||[]).find(t=>t.id===id) || {id:id, name:id, color:'#6b7280', wins:0, losses:0};
+  },
+
+  uid(prefix){
+    return prefix + '_' + Date.now().toString(36) + Math.floor(Math.random()*1000).toString(36);
+  }
+};
+
+window.addEventListener('storage', (e)=>{
+  if(e.key === HOOP_STORAGE_KEY && !document.body.classList.contains('admin-page')){
+    location.reload();
+  }
+});

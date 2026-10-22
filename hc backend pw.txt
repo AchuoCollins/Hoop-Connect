@@ -1,0 +1,9 @@
+superbase = 7kAFQmUZtoTzPQmh
+
+User UID
+
+7149d45a-3edf-4659-841b-c42cdee82bf1
+
+project id = elhitqjzeeporrzggpge
+
+project url = https://elhitqjzeeporrzggpge.supabase.co
