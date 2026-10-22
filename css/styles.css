@@ -1138,3 +1138,54 @@ body.static-mode .scroll-indicator{display:none}
   .score-team{font-size:16px}
   .score-btns button{min-width:44px;padding:10px 12px;font-size:16px}
 }
+
+/* =========================================================================
+   FIX: Stop mobile grid from bleeding off the right edge
+   ========================================================================= */
+
+@media (max-width: 720px) {
+  /* 1. Force the main wrapper to respect the screen width */
+  .hc-shell {
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+    width: 100% !important;
+    max-width: 100vw !important;
+    overflow-x: hidden !important;
+    box-sizing: border-box !important;
+  }
+  
+  .hc-main {
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  /* 2. Fix the News Grid */
+  .feed-grid {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
+    width: 100% !important;
+    gap: 12px !important;
+  }
+
+  /* 3. Fix the Clips Grid */
+  .clips-grid {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
+    width: 100% !important;
+    gap: 12px !important;
+  }
+
+  /* 4. Fix the Competition Overview layout */
+  .competition-overview {
+    width: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 24px !important;
+  }
+  
+  .competition-overview .overview-feed {
+    width: 100% !important;
+  }
+}
