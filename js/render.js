@@ -374,18 +374,44 @@ function hoopRenderScoresPage(data, comp){
 /* =========================================================
    CLIPS
    ========================================================= */
+
+
+/* Detect the platform a clip's sourceUrl belongs to.
+   Returns 'tiktok' | 'instagram' | '' ('' = upload / unknown). */
+function hoopClipPlatform(sourceUrl){
+  const safe = hoopSafeUrl(sourceUrl);
+  if(!safe) return '';
+  let host = '';
+  try{ host = new URL(safe).hostname; }catch(e){ return ''; }
+  if(/(^|\.)tiktok\.com$/.test(host)) return 'tiktok';
+  if(/(^|\.)instagram\.com$/.test(host)) return 'instagram';
+  return '';
+}
+
 function hoopClipHTML(clip, revealClass){
   const sizeClass = clip.size ? ' '+clip.size : '';
   const rc = revealClass ? ' '+revealClass : '';
   const key = 'clip:'+clip.id;
   const safeSourceUrl = hoopSafeUrl(clip.sourceUrl);
-  const isVideo = !!safeSourceUrl;
-  const overlay = isVideo
-    ? `<a class="clip-link" href="${hoopEsc(safeSourceUrl)}" target="_blank" rel="noopener" aria-label="Watch on TikTok"></a>
+  const platform = hoopClipPlatform(safeSourceUrl);
+  const isVideo = !!platform;
+
+  const igIcon = '<svg class="hicon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>';
+
+  let overlay;
+  if(platform === 'tiktok'){
+    overlay = `<a class="clip-link" href="${hoopEsc(safeSourceUrl)}" target="_blank" rel="noopener" aria-label="Watch on TikTok"></a>
     <span class="clip-badge">${HOOP_ICONS.tiktok} TikTok</span>
-    <div class="play-sm"></div>`
-    : `<div class="play-sm zoom">${HOOP_ICONS.zoom}</div>
+    <div class="play-sm"></div>`;
+  } else if(platform === 'instagram'){
+    overlay = `<a class="clip-link" href="${hoopEsc(safeSourceUrl)}" target="_blank" rel="noopener" aria-label="Watch on Instagram"></a>
+    <span class="clip-badge">${igIcon} Instagram</span>
+    <div class="play-sm"></div>`;
+  } else {
+    overlay = `<div class="play-sm zoom">${HOOP_ICONS.zoom}</div>
     <button type="button" class="clip-dl" data-download aria-label="Download image" title="Download image">${HOOP_ICONS.download}</button>`;
+  }
+
   return `<div class="clip${sizeClass}${rc}"${isVideo ? '' : ' data-lightbox'} data-caption="${hoopEsc(clip.cap)}">
     <img src="${hoopEsc(clip.img)}" alt="${hoopEsc(clip.cap)}" />
     ${overlay}

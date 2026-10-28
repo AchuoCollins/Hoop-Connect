@@ -887,8 +887,15 @@ function renderClipsTable(){
   body.innerHTML = activeComp().clips.map(c=>`
     <tr>
       <td>${c.img?`<img src="${esc(c.img)}" alt="" style="width:44px;height:32px;object-fit:cover;border-radius:4px">`:''}</td>
-      <td>${esc(c.cap)} <span style="font-size:11px;color:var(--muted)">${c.sourceUrl ? '\u00b7 TikTok' : '\u00b7 Image'}</span></td>
-      <td>${c.views||0}</td>
+<td>${esc(c.cap)} <span style="font-size:11px;color:var(--muted)">${(() => {
+  if(!c.sourceUrl) return '\u00b7 Image';
+  try{
+    const h = new URL(c.sourceUrl).hostname;
+    if(/(^|\.)instagram\.com$/.test(h)) return '\u00b7 Instagram';
+    if(/(^|\.)tiktok\.com$/.test(h)) return '\u00b7 TikTok';
+  }catch(e){}
+  return '\u00b7 Link';
+})()}</span></td>      <td>${c.views||0}</td>
       <td class="admin-row-actions">
         <button type="button" class="admin-btn-edit" data-edit-clip="${esc(c.id)}">Edit</button>
         <button type="button" class="admin-btn-delete" data-delete-clip="${esc(c.id)}">Delete</button>
@@ -911,7 +918,7 @@ function renderClipsTable(){
 function setClipSourceMode(mode){
   document.querySelector(`input[name="clipSourceMode"][value="${mode}"]`).checked = true;
   document.getElementById('clipUploadMode').style.display = mode==='upload' ? '' : 'none';
-  document.getElementById('clipLinkMode').style.display = mode==='link' ? '' : 'none';
+  document.getElementById('clipLinkMode').style.display = mode==='upload' ? 'none' : '';
 }
 document.querySelectorAll('input[name="clipSourceMode"]').forEach(radio=>{
   radio.addEventListener('change', ()=>setClipSourceMode(radio.value));
@@ -948,19 +955,19 @@ document.getElementById('clipCoverFile').addEventListener('change', (e)=>{
   reader.readAsDataURL(file);
 });
 document.getElementById('clipFetchPreviewBtn').addEventListener('click', async ()=>{
-  const url = document.getElementById('clipSourceUrlInput').value;
+  const url = document.getElementById('clipSourceUrlInput').value.trim();
   const status = document.getElementById('clipFetchStatus');
   status.style.color = 'var(--muted)';
-  status.textContent = 'Fetching preview...';
+  status.textContent = 'Fetching preview…';
   try{
-    const {thumbnail, sourceUrl, persisted} = await HoopEmbed.resolveTikTokThumbnail(url);
+    const {thumbnail, sourceUrl, persisted} = await HoopEmbed.resolveThumbnail(url);
     document.getElementById('clipResolvedImg').value = thumbnail;
     document.getElementById('clipResolvedSourceUrl').value = sourceUrl;
     setClipPreview(thumbnail);
     status.style.color = persisted ? '#3fa66e' : '#b45309';
     status.textContent = persisted
       ? 'Cover image found and saved.'
-      : "Cover found, but TikTok's image link will expire in a few days \u2014 upload a cover image below to keep it permanent.";
+      : 'Cover found, but its link will expire in a few days — upload a cover image below to keep it permanent.';
   }catch(err){
     status.style.color = '#dc2626';
     status.textContent = err.message;
@@ -980,10 +987,18 @@ function loadClipIntoForm(id){
   document.getElementById('clipSize').value = c.size||'';
   document.getElementById('clipResolvedImg').value = c.img||'';
   document.getElementById('clipResolvedSourceUrl').value = c.sourceUrl||'';
+  document.getElementById('clipFetchStatus').textContent = '';
+
   if(c.sourceUrl){
-    setClipSourceMode('link');
+    /* Detect platform from the URL so the correct radio is preselected */
+    const url = c.sourceUrl;
+    let host = '';
+    try{ host = new URL(url).hostname; }catch(err){}
+    let mode = 'tiktok';
+    if(/(^|\.)instagram\.com$/.test(host)) mode = 'instagram';
+    else if(/(^|\.)tiktok\.com$/.test(host)) mode = 'tiktok';
+    setClipSourceMode(mode);
     document.getElementById('clipSourceUrlInput').value = c.sourceUrl;
-    document.getElementById('clipFetchStatus').textContent = '';
   } else {
     setClipSourceMode('upload');
   }
@@ -999,6 +1014,7 @@ function resetClipForm(){
   document.getElementById('clipFetchStatus').textContent = '';
   document.getElementById('clipImageFile').value = '';
   document.getElementById('clipCoverFile').value = '';
+  document.getElementById('clipSourceUrlInput').value = '';
   setClipSourceMode('upload');
   setClipPreview('');
 }
@@ -1010,13 +1026,23 @@ clipForm.addEventListener('submit', async (e)=>{
   if(!cap){ toast('Caption is required'); return; }
   const img = document.getElementById('clipResolvedImg').value;
   const mode = document.querySelector('input[name="clipSourceMode"]:checked').value;
-  const tiktokUrl = document.getElementById('clipSourceUrlInput').value.trim();
-  if(mode==='link'){
+  const sourceUrl = document.getElementById('clipSourceUrlInput').value.trim();
+
+  if(mode === 'tiktok'){
     let host = '';
-    try{ host = new URL(tiktokUrl).hostname; }catch(err){}
+    try{ host = new URL(sourceUrl).hostname; }catch(err){}
     if(!/(^|\.)tiktok\.com$/.test(host)){ toast('Paste a valid TikTok video link'); return; }
     if(!img){ toast('Fetch the TikTok cover image or upload a cover first'); return; }
-  } else if(!img){ toast('Upload an image first'); return; }
+  } else if(mode === 'instagram'){
+    if(!HoopEmbed.isInstagramUrl(sourceUrl)){
+      toast('Paste a valid Instagram post or reel link (instagram.com/p/… or /reel/…)');
+      return;
+    }
+    if(!img){ toast('Fetch the Instagram cover image or upload a cover first'); return; }
+  } else if(!img){
+    toast('Upload an image first'); return;
+  }
+
   const payload = {
     cap: cap,
     views: parseInt(document.getElementById('clipViews').value,10) || 0,
@@ -1025,7 +1051,7 @@ clipForm.addEventListener('submit', async (e)=>{
     comments: parseInt(document.getElementById('clipComments').value,10) || 0,
     size: document.getElementById('clipSize').value,
     img: img,
-    sourceUrl: mode==='link' ? tiktokUrl : ''
+    sourceUrl: (mode === 'tiktok' || mode === 'instagram') ? sourceUrl : ''
   };
 
   if(editingId){
