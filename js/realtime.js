@@ -19,7 +19,6 @@ function hoopInitRealtime(){
             HoopData._updateCache(p);
           }
 
-          /* NEW: let site-settings.js (and anything else listening) re-apply */
           try { document.dispatchEvent(new CustomEvent('hoop:data-updated')); } catch(e){}
 
           if(typeof hoopRenderAll === 'function') hoopRenderAll();

@@ -1065,37 +1065,60 @@ document.getElementById('watchClear').addEventListener('click', async ()=>{
 const settingsForm = document.getElementById('settingsForm');
 function loadSettingsForm(){
   const s = data.site || {};
-  document.getElementById('setTitle').value = s.title || '';
-  document.getElementById('setTagline').value = s.tagline || '';
-  document.getElementById('setPrimaryColor').value = s.primaryColor || '#0a1f44';
-  document.getElementById('setAccentColor').value = s.accentColor || '#ff7a3d';
-  document.getElementById('setHeroTitle').value = s.heroTitle || '';
-  document.getElementById('setHeroSubtitle').value = s.heroSubtitle || '';
-  document.getElementById('setEmail').value = s.contactEmail || '';
-  document.getElementById('setPhone').value = s.contactPhone || '';
-  document.getElementById('setLocation').value = s.contactLocation || '';
-  document.getElementById('setTikTok').value = s.socialTikTok || '';
-  document.getElementById('setInstagram').value = s.socialInstagram || '';
-  document.getElementById('setMeta').value = s.metaDescription || '';
+  const set = (id, v) => { const el = document.getElementById(id); if(el) el.value = v == null ? '' : v; };
+  set('setTitle', s.title);
+  set('setTagline', s.tagline);
+  set('setPrimaryColor', s.primaryColor || '#0a1f44');
+  set('setAccentColor', s.accentColor || '#ff7a3d');
+  set('setHeroTitle', s.heroTitle);
+  set('setHeroSubtitle', s.heroSubtitle);
+  set('setFooterPhone', s.footerPhone);
+  set('setEmail', s.contactEmail);
+  set('setLocation', s.contactLocation);
+  set('setTikTok', s.socialTikTok);
+  set('setInstagram', s.socialInstagram);
+  set('setMeta', s.metaDescription);
+  set('setAboutIntro', s.aboutIntro);
+  set('setAboutHow', s.aboutHowItWorks);
+  set('setAboutBehind', s.aboutBehindIt);
+  set('setDonateIntro', s.donateIntro);
+  set('setContactIntro', s.contactIntro);
 }
 settingsForm.addEventListener('submit', async (e)=>{
   e.preventDefault();
-  data.site = {
-    title: document.getElementById('setTitle').value.trim(),
-    tagline: document.getElementById('setTagline').value.trim(),
-    primaryColor: document.getElementById('setPrimaryColor').value,
-    accentColor: document.getElementById('setAccentColor').value,
-    heroTitle: document.getElementById('setHeroTitle').value.trim(),
-    heroSubtitle: document.getElementById('setHeroSubtitle').value.trim(),
-    contactEmail: document.getElementById('setEmail').value.trim(),
-    contactPhone: document.getElementById('setPhone').value.trim(),
-    contactLocation: document.getElementById('setLocation').value.trim(),
-    socialTikTok: document.getElementById('setTikTok').value.trim(),
-    socialInstagram: document.getElementById('setInstagram').value.trim(),
-    metaDescription: document.getElementById('setMeta').value.trim()
-  };
+  const getVal = id => { const el = document.getElementById(id); return el ? el.value.trim() : ''; };
+
+  /* Validate footer phone: must be +237 followed by 9 digits */
+  const footerPhone = getVal('setFooterPhone');
+  if(footerPhone){
+    const digits = footerPhone.replace(/\D/g, '');
+    if(digits.length !== 12 || !digits.startsWith('237')){
+      toast('Footer phone must start with +237 and be followed by 9 digits (e.g. +237 677 123 456)', true);
+      return;
+    }
+  }
+
+  data.site = Object.assign({}, data.site, {
+    title: getVal('setTitle'),
+    tagline: getVal('setTagline'),
+    primaryColor: (document.getElementById('setPrimaryColor')||{}).value || '#0a1f44',
+    accentColor: (document.getElementById('setAccentColor')||{}).value || '#ff7a3d',
+    heroTitle: getVal('setHeroTitle'),
+    heroSubtitle: getVal('setHeroSubtitle'),
+    footerPhone: footerPhone,
+    contactEmail: getVal('setEmail'),
+    contactLocation: getVal('setLocation'),
+    socialTikTok: getVal('setTikTok'),
+    socialInstagram: getVal('setInstagram'),
+    metaDescription: getVal('setMeta'),
+    aboutIntro: getVal('setAboutIntro'),
+    aboutHowItWorks: getVal('setAboutHow'),
+    aboutBehindIt: getVal('setAboutBehind'),
+    donateIntro: getVal('setDonateIntro'),
+    contactIntro: getVal('setContactIntro')
+  });
   if(!(await persist())) return;
- toast('Site settings saved — open tabs update live');
+  toast('Site settings saved — open tabs update live');
 });
 document.getElementById('settingsReset').addEventListener('click', async ()=>{
   if(!confirm('Reset all site settings to defaults?')) return;

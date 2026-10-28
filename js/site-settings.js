@@ -13,7 +13,6 @@
     const n = parseInt(m[1],16);
     return { r:(n>>16)&255, g:(n>>8)&255, b:n&255 };
   }
-
   function setVar(name, val){ document.documentElement.style.setProperty(name, val); }
 
   function applySiteSettings(){
@@ -27,8 +26,10 @@
       setVar('--royal', s.primaryColor);
       setVar('--royal-deep', s.primaryColor);
       const rgb = hexToRgb(s.primaryColor);
-      if(rgb) setVar('--navy-rgb', `${rgb.r},${rgb.g},${rgb.b}`);
-      if(rgb) setVar('--royal-rgb', `${rgb.r},${rgb.g},${rgb.b}`);
+      if(rgb){
+        setVar('--navy-rgb', `${rgb.r},${rgb.g},${rgb.b}`);
+        setVar('--royal-rgb', `${rgb.r},${rgb.g},${rgb.b}`);
+      }
     }
     if(s.accentColor){
       setVar('--gold', s.accentColor);
@@ -42,11 +43,7 @@
     if(s.title){
       const current = document.title || '';
       const parts = current.split('—').map(x=>x.trim());
-      if(parts.length > 1){
-        document.title = parts[0] + ' — ' + s.title;
-      } else {
-        document.title = s.title;
-      }
+      document.title = parts.length > 1 ? parts[0] + ' — ' + s.title : s.title;
     }
     if(s.metaDescription){
       let meta = document.querySelector('meta[name="description"]');
@@ -58,7 +55,7 @@
       meta.setAttribute('content', s.metaDescription);
     }
 
-    /* -------- Logo text (all .logo elements) -------- */
+    /* -------- Logo text -------- */
     if(s.title){
       document.querySelectorAll('.logo').forEach(el=>{
         const mark = el.querySelector('.logo-mark');
@@ -91,59 +88,58 @@
     }
     if(heroP && s.heroSubtitle) heroP.textContent = s.heroSubtitle;
 
-    /* -------- Footer contact info -------- */
-    if(s.contactEmail){
-      document.querySelectorAll('.footer-col .contact, .contact-card a[href^="mailto"]').forEach(el=>{
-        if(el.tagName === 'A' && el.href.startsWith('mailto:')){
-          el.href = 'mailto:' + s.contactEmail;
-          el.textContent = s.contactEmail;
-        } else {
-          el.innerHTML = el.innerHTML.replace(/[\w.\-]+@[\w.\-]+/, s.contactEmail);
-        }
-      });
-    }
-    if(s.contactPhone){
-      document.querySelectorAll('.footer-col .contact, .contact-card a[href^="tel"]').forEach(el=>{
-        if(el.tagName === 'A' && el.href.startsWith('tel:')){
-          el.href = 'tel:' + s.contactPhone.replace(/\s+/g,'');
-          el.textContent = s.contactPhone;
-        } else {
-          el.innerHTML = el.innerHTML.replace(/\+237[^<\s]*(\s*[Xx]{3})*/, s.contactPhone);
-        }
-      });
-    }
-    if(s.contactLocation){
-      document.querySelectorAll('.footer-col .contact').forEach(el=>{
-        if(/(Buea|Molyko|Cameroon)/i.test(el.textContent)){
-          el.innerHTML = el.innerHTML.replace(/(Buea|Molyko|Cameroon)[^<]*/i, s.contactLocation);
-        }
-      });
-    }
+    /* -------- Footer: ONE phone contact -------- */
+    document.querySelectorAll('[data-footer-phone]').forEach(el=>{
+      if(s.footerPhone) el.textContent = s.footerPhone;
+    });
+
+    /* Footer brand blurb */
+    document.querySelectorAll('[data-footer-blurb]').forEach(el=>{
+      if(s.tagline) el.textContent = s.tagline + '. Every game. Every clip. Every team — connected.';
+    });
+
+    /* -------- Page intros -------- */
+    const intros = {
+      'about': s.aboutIntro,
+      'about-how': s.aboutHowItWorks,
+      'about-behind': s.aboutBehindIt,
+      'donate': s.donateIntro,
+      'contact': s.contactIntro
+    };
+    Object.keys(intros).forEach(k=>{
+      const v = intros[k];
+      if(!v) return;
+      document.querySelectorAll(`[data-page-intro="${k}"]`).forEach(el=>{ el.textContent = v; });
+    });
+
+    /* -------- Contact page markers -------- */
+    if(s.contactEmail) document.querySelectorAll('[data-contact-email]').forEach(el=>{
+      if(el.tagName === 'A'){ el.href = 'mailto:' + s.contactEmail; el.textContent = s.contactEmail; }
+      else el.textContent = s.contactEmail;
+    });
+    if(s.footerPhone) document.querySelectorAll('[data-contact-phone]').forEach(el=>{
+      const tel = s.footerPhone.replace(/[^\d+]/g,'');
+      if(el.tagName === 'A'){ el.href = 'tel:' + tel; el.textContent = s.footerPhone; }
+      else el.textContent = s.footerPhone;
+    });
+    if(s.contactLocation) document.querySelectorAll('[data-contact-location]').forEach(el=>{
+      el.textContent = s.contactLocation;
+    });
 
     /* -------- Social links -------- */
-    if(s.socialTikTok){
-      document.querySelectorAll('a[aria-label="TikTok"]').forEach(a=>{ a.href = s.socialTikTok; });
-    }
-    if(s.socialInstagram){
-      document.querySelectorAll('a[aria-label="Instagram"]').forEach(a=>{ a.href = s.socialInstagram; });
-    }
+    if(s.socialTikTok) document.querySelectorAll('a[aria-label="TikTok"]').forEach(a=>{ a.href = s.socialTikTok; });
+    if(s.socialInstagram) document.querySelectorAll('a[aria-label="Instagram"]').forEach(a=>{ a.href = s.socialInstagram; });
   }
 
-  /* Run once immediately with whatever is in cache (avoids flash of unstyled/default). */
   try { applySiteSettings(); } catch(e){ console.warn('[site-settings] initial:', e); }
-
-  /* Re-run when the real Supabase data finishes loading. */
   if(typeof HoopData.ready === 'function'){
     HoopData.ready().then(() => {
       try { applySiteSettings(); } catch(e){ console.warn('[site-settings] ready:', e); }
     });
   }
-
-  /* Re-run when realtime updates arrive, so an admin edit shows up live. */
   document.addEventListener('hoop:data-updated', () => {
     try { applySiteSettings(); } catch(e){ console.warn('[site-settings] realtime:', e); }
   });
 
-  /* Expose for manual re-apply if needed. */
   window.hoopApplySiteSettings = applySiteSettings;
 })();

@@ -13,14 +13,26 @@ const HOOP_DEFAULT_SITE = {
   tagline: 'The home for grassroots basketball competitions',
   heroTitle: 'Every Court. Every Competition.',
   heroSubtitle: "Hoop Connect is where local basketball competitions get a home online — live scores, brackets, news and clips, all in one place. Pick a competition below to follow along.",
+
+  /* Footer: ONE phone number, +237 + 9 digits */
+  footerPhone: '+237 6XX XXX XXX',
+
+  /* Used on the Contact page */
   contactEmail: 'media@hoopconnect.cm',
-  contactPhone: '+237 6XX XXX XXX',
   contactLocation: 'Buea, Cameroon',
+
   socialTikTok: '#',
   socialInstagram: '#',
   metaDescription: 'Hoop Connect is the home for grassroots basketball competitions — live scores, brackets, news and clips, all in one place.',
   primaryColor: '#0a1f44',
-  accentColor: '#ff7a3d'
+  accentColor: '#ff7a3d',
+
+  /* Editable page intros */
+  aboutIntro: "Hoop Connect is a home for grassroots basketball competitions to run their season online — live scores as they happen, a real bracket, team rosters, news write-ups, and courtside clips, without needing their own website built from scratch.",
+  aboutHowItWorks: "An organizer manages their competition's teams, schedule, live scores and bracket from one dashboard. As games are played, the site updates — standings recalculate, bracket winners advance, and the live ticker reflects what's happening on court.",
+  aboutBehindIt: "Hoop Connect started as a way to give the Molyko Basketball Challenge a proper live-scores presence, and grew into a platform other local competitions can use too. If you run a tournament and want it featured here, get in touch.",
+  donateIntro: "Hoop Connect is built to keep grassroots basketball visible — live scores, brackets and highlights for competitions that wouldn't otherwise have a website. If that's worth supporting, here's how.",
+  contactIntro: "Questions about a specific competition — scores, teams, schedule — are best sent to that competition directly. For anything about Hoop Connect itself, the platform, or getting a competition featured, reach us here."
 };
 
 const HOOP_DEFAULT_MBC = {

@@ -472,77 +472,106 @@
       <p class="sub">Global branding, contact info, and homepage content. Applies across every page.</p>
 
       <form class="admin-form" id="settingsForm">
-        <h3>Branding</h3>
-        <div class="admin-form-row">
-          <div class="admin-field">
-            <label for="setTitle">Site Title</label>
-            <input type="text" id="setTitle" />
-          </div>
-          <div class="admin-field">
-            <label for="setTagline">Tagline</label>
-            <input type="text" id="setTagline" />
-          </div>
-        </div>
-        <div class="admin-form-row">
-          <div class="admin-field">
-            <label for="setPrimaryColor">Primary Color</label>
-            <input type="color" id="setPrimaryColor" />
-          </div>
-          <div class="admin-field">
-            <label for="setAccentColor">Accent Color</label>
-            <input type="color" id="setAccentColor" />
-          </div>
-        </div>
+  <h3>Branding</h3>
+  <div class="admin-form-row">
+    <div class="admin-field">
+      <label for="setTitle">Site Title</label>
+      <input type="text" id="setTitle" />
+    </div>
+    <div class="admin-field">
+      <label for="setTagline">Tagline</label>
+      <input type="text" id="setTagline" />
+    </div>
+  </div>
+  <div class="admin-form-row">
+    <div class="admin-field">
+      <label for="setPrimaryColor">Primary Color</label>
+      <input type="color" id="setPrimaryColor" />
+    </div>
+    <div class="admin-field">
+      <label for="setAccentColor">Accent Color</label>
+      <input type="color" id="setAccentColor" />
+    </div>
+  </div>
 
-        <h3>Homepage Hero</h3>
-        <div class="admin-field">
-          <label for="setHeroTitle">Hero Title (last word gets accent color)</label>
-          <input type="text" id="setHeroTitle" />
-        </div>
-        <div class="admin-field">
-          <label for="setHeroSubtitle">Hero Subtitle</label>
-          <textarea id="setHeroSubtitle"></textarea>
-        </div>
+  <h3>Homepage Hero</h3>
+  <div class="admin-field">
+    <label for="setHeroTitle">Hero Title (last word gets accent color)</label>
+    <input type="text" id="setHeroTitle" />
+  </div>
+  <div class="admin-field">
+    <label for="setHeroSubtitle">Hero Subtitle</label>
+    <textarea id="setHeroSubtitle"></textarea>
+  </div>
 
-        <h3>Contact Info (footer)</h3>
-        <div class="admin-form-row">
-          <div class="admin-field">
-            <label for="setEmail">Email</label>
-            <input type="email" id="setEmail" />
-          </div>
-          <div class="admin-field">
-            <label for="setPhone">Phone</label>
-            <input type="text" id="setPhone" />
-          </div>
-          <div class="admin-field">
-            <label for="setLocation">Location</label>
-            <input type="text" id="setLocation" />
-          </div>
-        </div>
+  <h3>Footer</h3>
+  <div class="admin-field">
+    <label for="setFooterPhone">Footer phone (must start with +237, then 9 digits)</label>
+    <input type="tel" id="setFooterPhone" placeholder="+237 677 123 456" pattern="^\+?237[\s\-]?\d{3}[\s\-]?\d{3}[\s\-]?\d{3}$" />
+    <p style="font-size:11px;color:var(--muted);margin-top:6px">This is the only contact shown in the footer, on every page. Example: +237 677 123 456.</p>
+  </div>
 
-        <h3>Social Links</h3>
-        <div class="admin-form-row">
-          <div class="admin-field">
-            <label for="setTikTok">TikTok URL</label>
-            <input type="url" id="setTikTok" />
-          </div>
-          <div class="admin-field">
-            <label for="setInstagram">Instagram URL</label>
-            <input type="url" id="setInstagram" />
-          </div>
-        </div>
+  <h3>Contact Page</h3>
+  <div class="admin-form-row">
+    <div class="admin-field">
+      <label for="setEmail">Email</label>
+      <input type="email" id="setEmail" />
+    </div>
+    <div class="admin-field">
+      <label for="setLocation">Location</label>
+      <input type="text" id="setLocation" />
+    </div>
+  </div>
 
-        <h3>SEO</h3>
-        <div class="admin-field">
-          <label for="setMeta">Meta Description</label>
-          <textarea id="setMeta"></textarea>
-        </div>
+  <h3>Social Links</h3>
+  <div class="admin-form-row">
+    <div class="admin-field">
+      <label for="setTikTok">TikTok URL</label>
+      <input type="url" id="setTikTok" />
+    </div>
+    <div class="admin-field">
+      <label for="setInstagram">Instagram URL</label>
+      <input type="url" id="setInstagram" />
+    </div>
+  </div>
 
-        <div class="admin-form-actions">
-          <button type="submit" class="admin-btn-primary">Save Settings</button>
-          <button type="button" class="admin-btn-secondary" id="settingsReset">Reset to Defaults</button>
-        </div>
-      </form>
+  <h3>About Page</h3>
+  <div class="admin-field">
+    <label for="setAboutIntro">What Hoop Connect is</label>
+    <textarea id="setAboutIntro" rows="3"></textarea>
+  </div>
+  <div class="admin-field">
+    <label for="setAboutHow">How it works</label>
+    <textarea id="setAboutHow" rows="3"></textarea>
+  </div>
+  <div class="admin-field">
+    <label for="setAboutBehind">Who's behind it</label>
+    <textarea id="setAboutBehind" rows="3"></textarea>
+  </div>
+
+  <h3>Donate Page</h3>
+  <div class="admin-field">
+    <label for="setDonateIntro">Intro paragraph</label>
+    <textarea id="setDonateIntro" rows="3"></textarea>
+  </div>
+
+  <h3>Contact Page</h3>
+  <div class="admin-field">
+    <label for="setContactIntro">Intro paragraph</label>
+    <textarea id="setContactIntro" rows="3"></textarea>
+  </div>
+
+  <h3>SEO</h3>
+  <div class="admin-field">
+    <label for="setMeta">Meta Description</label>
+    <textarea id="setMeta"></textarea>
+  </div>
+
+  <div class="admin-form-actions">
+    <button type="submit" class="admin-btn-primary">Save Settings</button>
+    <button type="button" class="admin-btn-secondary" id="settingsReset">Reset to Defaults</button>
+  </div>
+</form>
     </section>
 
     <!-- COMPETITIONS PANEL -->
