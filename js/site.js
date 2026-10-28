@@ -25,23 +25,6 @@
   setTimeout(()=>{ els.forEach(el=>{ if(el) el.classList.add('is-visible'); }); }, 2000);
 })();
 
-(function initFeedTabs(){
-  const tabs = document.querySelectorAll('#feedTabs button');
-  if(!tabs.length) return;
-  tabs.forEach(btn=>{
-    if(!btn) return;
-    btn.addEventListener('click',()=>{
-      const cards = document.querySelectorAll('#feedGrid .feed-card');
-      tabs.forEach(b=>{ if(b) b.classList.remove('active'); });
-      btn.classList.add('active');
-      const f = btn.dataset.filter;
-      cards.forEach(c=>{
-        if(!c) return;
-        c.style.display = (f==='all' || c.dataset.cat===f) ? '' : 'none';
-      });
-    });
-  });
-})();
 
 (function initLiveScores(){
   const scoreEls = document.querySelectorAll('.score[data-team]');

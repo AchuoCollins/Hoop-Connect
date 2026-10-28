@@ -239,25 +239,7 @@ function hoopRenderScoresPage(data, comp){
 }
 
 /* ---------- FEATURED / FEED / CLIPS ---------- */
-function hoopRenderFeatured(data, comp){
-  const el = document.getElementById('featuredArticle');
-  if(!el) return;
-  const item = comp.news.find(n=>n.featured) || comp.news[0];
-  if(!item){ el.innerHTML = '<p style="color:var(--muted);font-size:14px;padding:10px 0">No articles yet.</p>'; return; }
-  el.innerHTML = `
-    <div class="featured-img"><img src="${hoopEsc(item.img)}" alt="${hoopEsc(item.title)}" /></div>
-    <div class="featured-body">
-      <span class="tag">${hoopEsc(item.kicker)}</span>
-      <h2>${hoopEsc(item.title)}</h2>
-      <p>${hoopEsc(item.body||'')}</p>
-      <div class="meta-row">
-        <span class="stat">${HOOP_ICONS.eye} ${hoopFormatCount(item.views)} views</span>
-        <button class="stat stat-engage${hoopEngageClass('like','news:'+item.id)}" data-engage-like="news:${hoopEsc(item.id)}">${HOOP_ICONS.up}<span>${hoopFormatCount(item.likes)}</span></button>
-        <button class="stat stat-engage${hoopEngageClass('dislike','news:'+item.id)}" data-engage-dislike="news:${hoopEsc(item.id)}">${HOOP_ICONS.down}<span>${hoopFormatCount(item.dislikes||0)}</span></button>
-        <span class="stat">${HOOP_ICONS.msg} ${hoopFormatCount(item.comments)} comments</span>
-      </div>
-    </div>`;
-}
+
 function hoopFeedCardHTML(item, revealClass, tilt){
   const rc = (tilt?' tilt3d':'') + (revealClass ? ' '+revealClass : '');
   return `<article class="feed-card${rc}" data-cat="${hoopEsc(item.cat)}">
@@ -279,16 +261,7 @@ function hoopFeedCardHTML(item, revealClass, tilt){
     </div>
   </article>`;
 }
-function hoopRenderFeed(data, comp){
-  const el = document.getElementById('feedGrid');
-  if(!el) return;
-  const scope = el.dataset.scope || '';
-  const revealClass = el.dataset.revealClass || '';
-  const tilt = el.dataset.tilt === 'true';
-  let items = comp.news.filter(n=>!n.featured);
-  if(scope === 'home' || scope === 'comp-overview') items = items.slice(0,4);
-  el.innerHTML = items.map(i=>hoopFeedCardHTML(i, revealClass, tilt)).join('') || '<p style="color:var(--muted);font-size:14px;padding:10px 0">No articles yet.</p>';
-}
+
 function hoopClipHTML(clip, revealClass){
   const sizeClass = clip.size ? ' '+clip.size : '';
   const rc = revealClass ? ' '+revealClass : '';
@@ -415,8 +388,6 @@ function hoopRenderAll(){
     hoopRenderStandings(data, comp);
     hoopRenderTicker(data, comp);
     hoopRenderScoresPage(data, comp);
-    hoopRenderFeatured(data, comp);
-    hoopRenderFeed(data, comp);
     hoopRenderClips(data, comp);
     hoopRenderBracket(data, comp);
   }

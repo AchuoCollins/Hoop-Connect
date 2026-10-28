@@ -99,12 +99,12 @@ document.getElementById('importDataFile').addEventListener('change', (e)=>{
 /* ---------- RESET ---------- */
 document.getElementById('resetDataBtn').addEventListener('click', async (e)=>{
   e.preventDefault();
-  if(!confirm('Reset ALL data (teams, games, news, clips) back to the site defaults? This cannot be undone.')) return;
+  if(!confirm('Reset ALL data (teams, games, clips) back to the site defaults? This cannot be undone.')) return;
   await HoopData.resetToDefaults();
   data = HoopData.load();
   activeCompId = data.competitions[0].id;
   refreshCompSelect();
-  renderTeamsTable(); renderGamesTable(); renderNewsTable(); renderClipsTable();
+  renderTeamsTable(); renderGamesTable(); renderClipsTable();
   renderBracketPanel(); renderBracketChecklist(); loadWatchForm();
   populateTeamSelects();
   toast('Data reset to defaults');
@@ -768,90 +768,6 @@ document.getElementById('bracketDeleteBtn').addEventListener('click', async ()=>
 });
 
 /* =========================================================
-   NEWS
-   ========================================================= */
-const newsForm = document.getElementById('newsForm');
-function renderNewsTable(){
-  const body = document.getElementById('newsTableBody');
-  body.innerHTML = activeComp().news.map(n=>`
-    <tr>
-      <td>${n.featured?'★':''}</td>
-      <td>${esc(n.title)}</td>
-      <td>${esc(n.cat)}</td>
-      <td class="admin-row-actions">
-        <button type="button" class="admin-btn-edit" data-edit-news="${esc(n.id)}">Edit</button>
-        <button type="button" class="admin-btn-delete" data-delete-news="${esc(n.id)}">Delete</button>
-      </td>
-    </tr>`).join('') || '<tr><td colspan="4" style="color:var(--muted)">No articles yet.</td></tr>';
-
-  body.querySelectorAll('[data-edit-news]').forEach(btn=>{
-    btn.addEventListener('click',()=>loadNewsIntoForm(btn.dataset.editNews));
-  });
-  body.querySelectorAll('[data-delete-news]').forEach(btn=>{
-    btn.addEventListener('click', async ()=>{
-      if(!confirm('Delete this article?')) return;
-      activeComp().news = activeComp().news.filter(n=>n.id!==btn.dataset.deleteNews);
-      if(!(await persist())) return; renderNewsTable();
-      toast('Article deleted');
-    });
-  });
-}
-function loadNewsIntoForm(id){
-  const n = activeComp().news.find(x=>x.id===id);
-  if(!n) return;
-  document.getElementById('newsFormTitle').textContent = 'Edit Article';
-  document.getElementById('newsEditingId').value = n.id;
-  document.getElementById('newsCat').value = n.cat;
-  document.getElementById('newsFeatured').checked = !!n.featured;
-  document.getElementById('newsKicker').value = n.kicker||'';
-  document.getElementById('newsTitle').value = n.title||'';
-  document.getElementById('newsBody').value = n.body||'';
-  document.getElementById('newsImg').value = n.img||'';
-  document.getElementById('newsDur').value = n.dur||'';
-  document.getElementById('newsViews').value = n.views||0;
-  document.getElementById('newsLikes').value = n.likes||0;
-  document.getElementById('newsDislikes').value = n.dislikes||0;
-  document.getElementById('newsComments').value = n.comments||0;
-  window.scrollTo({top:document.getElementById('newsForm').offsetTop-20, behavior:'smooth'});
-}
-function resetNewsForm(){
-  newsForm.reset();
-  document.getElementById('newsFormTitle').textContent = 'Add Article';
-  document.getElementById('newsEditingId').value = '';
-}
-document.getElementById('newsFormCancel').addEventListener('click', resetNewsForm);
-newsForm.addEventListener('submit', async (e)=>{
-  e.preventDefault();
-  const editingId = document.getElementById('newsEditingId').value;
-  const title = document.getElementById('newsTitle').value.trim();
-  if(!title){ toast('Title is required'); return; }
-  const featured = document.getElementById('newsFeatured').checked;
-  const payload = {
-    cat: document.getElementById('newsCat').value,
-    featured: featured,
-    kicker: document.getElementById('newsKicker').value.trim(),
-    title: title,
-    body: document.getElementById('newsBody').value.trim(),
-    img: document.getElementById('newsImg').value.trim(),
-    dur: document.getElementById('newsDur').value.trim(),
-    views: parseInt(document.getElementById('newsViews').value,10) || 0,
-    likes: parseInt(document.getElementById('newsLikes').value,10) || 0,
-    dislikes: parseInt(document.getElementById('newsDislikes').value,10) || 0,
-    comments: parseInt(document.getElementById('newsComments').value,10) || 0
-  };
-  if(featured){ activeComp().news.forEach(n=>{ n.featured = false; }); }
-
-  if(editingId){
-    const idx = activeComp().news.findIndex(n=>n.id===editingId);
-    if(idx>-1) activeComp().news[idx] = Object.assign({id:editingId}, payload);
-  } else {
-    activeComp().news.push(Object.assign({id:HoopData.uid('n')}, payload));
-  }
-  if(!(await persist())) return; renderNewsTable(); resetNewsForm();
-  toast('Article saved');
-});
-
-/* =========================================================
    CLIPS
    ========================================================= */
 const clipForm = document.getElementById('clipForm');
@@ -1224,7 +1140,7 @@ competitionForm.addEventListener('submit', async (e)=>{
   } else {
     if(data.competitions.some(c=>c.id===id)){ toast('A competition with that ID already exists'); return; }
     data.competitions.push(Object.assign({
-      teams: [], games: [], news: [], clips: [],
+      teams: [], games: [], clips: [],
       bracket: null,
       watch: {title:'', url:'', tiktokUrl:'', live:false, description:''}
     }, payload));
@@ -1249,7 +1165,6 @@ HoopData.ready().then(() => {
   renderGamesTable();
   renderBracketPanel();
   renderBracketChecklist();
-  renderNewsTable();
   renderClipsTable();
   renderCompetitionsTable();
 });

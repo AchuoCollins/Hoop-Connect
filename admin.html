@@ -39,7 +39,6 @@
     <button class="admin-tab-btn" data-panel="scores">Live Scores</button>
     <button class="admin-tab-btn" data-panel="schedule">Schedule</button>
     <button class="admin-tab-btn" data-panel="bracket">Bracket</button>
-    <button class="admin-tab-btn" data-panel="news">News</button>
     <button class="admin-tab-btn" data-panel="clips">Clips</button>
     <button class="admin-tab-btn" data-panel="watch">Watch Live</button>
     <div class="admin-tab-divider">Site</div>
@@ -269,79 +268,6 @@
       <div id="bracketPanelBody"></div>
     </section>
 
-    <!-- NEWS PANEL -->
-    <section class="admin-panel" id="panel-news">
-      <h2>News & Recaps</h2>
-      <p class="sub">Appears on the competition page and the full News page.</p>
-
-      <table class="admin-table">
-        <thead><tr><th></th><th>Title</th><th>Category</th><th></th></tr></thead>
-        <tbody id="newsTableBody"></tbody>
-      </table>
-
-      <form class="admin-form" id="newsForm">
-        <h3 id="newsFormTitle">Add Article</h3>
-        <input type="hidden" id="newsEditingId" value="" />
-        <div class="admin-form-row">
-          <div class="admin-field">
-            <label for="newsCat">Category</label>
-            <select id="newsCat">
-              <option value="highlights">Highlights</option>
-              <option value="recaps">Recaps</option>
-              <option value="team">Team News</option>
-            </select>
-          </div>
-          <div class="admin-field admin-field-check" style="align-self:end;padding-bottom:9px">
-            <input type="checkbox" id="newsFeatured" />
-            <label for="newsFeatured" style="margin:0">Feature on competition page</label>
-          </div>
-        </div>
-        <div class="admin-field">
-          <label for="newsKicker">Kicker</label>
-          <input type="text" id="newsKicker" placeholder="e.g. Molyko Kings · #23" />
-        </div>
-        <div class="admin-field">
-          <label for="newsTitle">Title</label>
-          <input type="text" id="newsTitle" required />
-        </div>
-        <div class="admin-field">
-          <label for="newsBody">Body (used only for the featured article)</label>
-          <textarea id="newsBody"></textarea>
-        </div>
-        <div class="admin-field">
-          <label for="newsImg">Image URL</label>
-          <input type="text" id="newsImg" placeholder="https://..." />
-        </div>
-        <div class="admin-form-row">
-          <div class="admin-field">
-            <label for="newsDur">Duration</label>
-            <input type="text" id="newsDur" placeholder="1:18" />
-          </div>
-          <div class="admin-field">
-            <label for="newsViews">Views</label>
-            <input type="number" min="0" id="newsViews" value="0" />
-          </div>
-        </div>
-        <div class="admin-form-row">
-          <div class="admin-field">
-            <label for="newsLikes">Likes</label>
-            <input type="number" min="0" id="newsLikes" value="0" />
-          </div>
-          <div class="admin-field">
-            <label for="newsDislikes">Dislikes</label>
-            <input type="number" min="0" id="newsDislikes" value="0" />
-          </div>
-          <div class="admin-field">
-            <label for="newsComments">Comments</label>
-            <input type="number" min="0" id="newsComments" value="0" />
-          </div>
-        </div>
-        <div class="admin-form-actions">
-          <button type="submit" class="admin-btn-primary">Save Article</button>
-          <button type="button" class="admin-btn-secondary" id="newsFormCancel">Clear</button>
-        </div>
-      </form>
-    </section>
 
     <!-- CLIPS PANEL -->
     <section class="admin-panel" id="panel-clips">
@@ -577,7 +503,7 @@
     <!-- COMPETITIONS PANEL -->
     <section class="admin-panel" id="panel-competitions">
       <h2>Competitions</h2>
-      <p class="sub">Each competition has its own teams, games, news, clips, bracket, stream, and socials. Adding one here creates a fully separate space.</p>
+      <p class="sub">Each competition has its own teams, games, clips, bracket, stream, and socials. Adding one here creates a fully separate space.</p>
 
       <table class="admin-table">
         <thead><tr><th></th><th>Name</th><th>Season</th><th>Status</th><th></th></tr></thead>

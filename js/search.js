@@ -24,7 +24,6 @@
     if(!comp) return [];
     const teams = comp.teams || [];
     const games = comp.games || [];
-    const news = comp.news || [];
     const clips = comp.clips || [];
     const out = [];
     const compId = comp.id;
@@ -40,11 +39,6 @@
       const label = a + ' vs ' + b;
       if(label.toLowerCase().includes(q)){
         out.push({type:'Match', label, href:'competition.html?id='+encodeURIComponent(compId)+'#scores'});
-      }
-    });
-    news.forEach(n=>{
-      if((n.title||'').toLowerCase().includes(q)){
-        out.push({type:'News', label:n.title, href:'news.html?id='+encodeURIComponent(compId)});
       }
     });
     clips.forEach(c=>{

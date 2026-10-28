@@ -1302,3 +1302,96 @@ body.static-mode .scroll-indicator{display:none}
   .score-team{font-size:16px}
   .score-btns button{min-width:44px;padding:10px 12px;font-size:16px}
 }
+/* =========================================================================
+   MOBILE FIXES (competition page) — appended last so these win the cascade
+   ========================================================================= */
+.nav-links .mobile-only{display:none}
+
+/* hamburger only exists where the nav collapses (<=720px) */
+@media (min-width:721px){
+  .mobile-menu-btn{display:none !important}
+}
+
+@media (max-width:960px){
+  /* Flex (not grid) so the section pills can stay sticky for the whole page.
+     display:contents lets sidebar children be ordered individually. */
+  .hc-shell{display:flex;flex-direction:column;align-items:stretch;gap:14px;padding:12px 12px 40px}
+  .hc-shell > *{min-width:0}
+  .hc-sidebar{display:contents}
+  .hc-sidebar-head{order:-4;flex-shrink:0}
+  .hc-sidebar-socials{order:-3}
+  .hc-sidebar-nav{
+    order:-2;flex-shrink:0;
+    position:sticky;top:56px;z-index:20;
+    box-shadow:var(--shadow-md);
+  }
+  .hc-shell .hc-main{order:0;width:100%}
+  .hc-sidebar-foot{order:5}
+}
+
+@media (max-width:720px){
+  /* ---- sticky header; menu sheet hangs off its bottom edge ---- */
+  header{position:sticky;top:0}
+  .top-bar{padding:6px 12px;gap:8px;min-height:56px;justify-content:flex-start}
+  .top-bar .logo{margin-right:auto}
+  .top-bar #liveIndicator{position:absolute;top:6px;right:6px;margin:0 !important}
+  .mobile-menu-btn{width:44px;height:44px;margin-left:-8px}
+
+  .nav-bar{position:absolute;top:100%;left:0;right:0}
+  body.menu-open .nav-bar{
+    max-height:calc(100vh - 56px);
+    max-height:calc(100dvh - 56px);
+    padding-bottom:max(16px,env(safe-area-inset-bottom));
+  }
+  .nav-links .mobile-only{display:block}
+  .nav-bar .nav-links a{display:flex;align-items:center;min-height:48px}
+  .nav-bar .search input{font-size:16px}          /* stops iOS zoom-on-focus */
+  html:has(body.menu-open){overflow:hidden}        /* lock page scroll behind menu */
+
+  /* ---- compact sidebar card so content starts sooner ---- */
+  .hc-sidebar-cover{aspect-ratio:21/9}
+  .hc-sidebar-head-body{padding:28px 16px 14px}
+  .hc-sidebar-head p{display:none}                 /* hero below already shows it */
+  .hc-sidebar-nav a{padding:10px 16px;font-size:13px}
+
+  /* ---- hero: .hc-main .page-hero (0,2,0) was beating the old mobile rule ---- */
+  .hc-main .page-hero{padding:24px 18px;border-radius:12px}
+  .page-hero h1{font-size:clamp(30px,9vw,40px);margin:10px 0 8px}
+  .page-hero p{font-size:14px}
+
+  /* ---- tables / cards ---- */
+  .standings{overflow-x:auto}
+  .standings-head{flex-wrap:wrap;gap:6px}
+  .section-title{font-size:24px}
+  .footer-col a{padding:4px 0;margin-bottom:4px}
+
+  /* ---- team modal ---- */
+  .team-modal{padding:12px}
+  .team-modal-card{padding:20px 16px;max-height:92vh;overscroll-behavior:contain}
+  .team-modal-head{gap:12px;margin-bottom:18px;padding-right:28px}
+  .team-modal-head > div:last-child{min-width:0}
+  .team-modal-logo{width:56px;height:56px;font-size:22px}
+  .team-modal-card h2{font-size:24px}
+  .team-modal-stats{gap:8px;padding:12px;margin-bottom:20px}
+  .stat-box span{font-size:24px}
+  .roster-item{padding:8px 10px;font-size:13px}
+  .roster-item .num{width:26px}
+  .roster-item .height{width:auto;margin-left:8px}
+}
+
+@media (max-width:480px){
+  .top-bar .logo{font-size:17px;gap:8px}
+  .top-bar .logo-mark{width:28px;height:28px}
+  .auth a.admin-link{display:none}                 /* lives in the menu instead */
+}
+
+@media (max-width:359px){
+  .top-bar .logo-mark{display:none}
+  .cta-gold .dot{display:none}
+}
+
+/* no sticky "hover lift" on touch screens */
+@media (hover:none){
+  .feed-card:hover,.team-card:hover,.clip:hover,.ticker-card:hover,.ticker-upcoming:hover{transform:none}
+  .feed-card:hover .thumb img,.clip:hover img{transform:none}
+}
