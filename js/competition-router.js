@@ -1,26 +1,50 @@
 /* =========================================================
    COMPETITION-ROUTER.JS — competition.html sidebar layout.
-   Populates sidebar head, cover, logo, and socials.
+   Waits for HoopData.ready() before deciding anything.
    ========================================================= */
 (function(){
+  function showMessage(html){
+    const root = document.querySelector('.competition-root');
+    if(root) root.innerHTML = html;
+  }
+
   function init(){
     if(typeof HoopData === 'undefined') return;
     if(!document.body || !document.body.classList) return;
     if(!document.body.classList.contains('competition-page')) return;
 
-    const data = HoopData.load();
+    /* First: if we already have data, render now. */
+    const cached = HoopData.load();
+    if(cached) return render(cached);
+
+    /* Otherwise: wait for the fetch. */
+    HoopData.ready().then((data) => {
+      if(!data){
+        showMessage('<div style="padding:60px 20px;text-align:center">' +
+          '<h1 style="font-family:Bebas Neue;font-size:32px">Couldn\'t load data</h1>' +
+          '<p style="color:#6b7280;margin-top:8px">Check your connection and refresh the page.</p>' +
+          '</div>');
+        return;
+      }
+      render(data);
+    });
+  }
+
+  function render(data){
     const comp = HoopData.activeCompetition(data);
 
     if(!comp){
-      const root = document.querySelector('.competition-root');
-      if(root) root.innerHTML = '<div style="padding:60px 20px;text-align:center"><h1 style="font-family:Bebas Neue;font-size:32px">No competitions yet</h1><p style="color:#6b7280;margin-top:8px">An admin needs to create one.</p></div>';
+      showMessage('<div style="padding:60px 20px;text-align:center">' +
+        '<h1 style="font-family:Bebas Neue;font-size:32px">No competitions yet</h1>' +
+        '<p style="color:#6b7280;margin-top:8px">An admin needs to create one.</p>' +
+        '</div>');
       return;
     }
 
     HoopData.setActiveCompetitionId(comp.id);
-    document.title = comp.name + ' — ' + (data.site.title || 'Hoop Connect');
+    document.title = comp.name + ' — ' + ((data.site && data.site.title) || 'Hoop Connect');
 
-    // Sidebar head
+    /* ---------- Sidebar head ---------- */
     const sidebarName = document.getElementById('compSidebarName');
     const sidebarSeason = document.getElementById('compSidebarSeason');
     const sidebarDesc = document.getElementById('compSidebarDesc');
@@ -28,7 +52,7 @@
     if(sidebarSeason) sidebarSeason.textContent = (comp.season || 'Competition');
     if(sidebarDesc) sidebarDesc.textContent = comp.tagline || '';
 
-    // Cover image
+    /* ---------- Cover image ---------- */
     const sidebarCover = document.getElementById('compSidebarCover');
     if(sidebarCover){
       const raw = comp.coverImg || '';
@@ -41,7 +65,7 @@
       }
     }
 
-    // Logo initials (or comp.logo if provided)
+    /* ---------- Logo ---------- */
     const sidebarLogo = document.getElementById('compSidebarLogo');
     if(sidebarLogo){
       if(comp.logo){
@@ -57,7 +81,7 @@
       }
     }
 
-    // Sidebar socials
+    /* ---------- Sidebar socials ---------- */
     const socialsWrap = document.getElementById('compSidebarSocials');
     if(socialsWrap){
       const s = comp.socials || {};
@@ -84,7 +108,7 @@
       }
     }
 
-    // Page hero
+    /* ---------- Page hero ---------- */
     const eyebrow = document.querySelector('.page-hero .eyebrow');
     const heroTitle = document.querySelector('.page-hero .font-display');
     const heroP = document.querySelector('.page-hero p');
@@ -96,7 +120,7 @@
     }
     if(heroP) heroP.textContent = comp.description || comp.tagline || '';
 
-    // Sidebar nav links get ?id=
+    /* ---------- Sidebar nav links: preserve ?id= ---------- */
     document.querySelectorAll('#compSidebarNav a').forEach(a=>{
       const href = a.getAttribute('href') || '';
       const m = href.match(/^competition\.html#(\w+)$/);
@@ -106,7 +130,7 @@
       }
     });
 
-    // Preserve ?id= on internal links
+    /* ---------- Preserve ?id= on internal links ---------- */
     document.querySelectorAll('a[href]').forEach(a=>{
       const href = a.getAttribute('href');
       if(!href) return;
@@ -118,6 +142,7 @@
       }
     });
 
+    /* ---------- Section switching ---------- */
     const sections = document.querySelectorAll('[data-comp-section]');
     const validPages = ['overview','teams','scores','bracket','watch'];
 

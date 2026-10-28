@@ -105,30 +105,30 @@
     </div>
 
     <section class="competition-overview" data-comp-section="overview" style="margin-top:24px">
-  <div class="overview-feed" style="grid-column:1/-1;max-width:none">
-    <div class="standings" style="position:static">
-      <div class="standings-head">
-        <h3>Standings</h3>
-        <a href="#teams">View full table →</a>
-      </div>
-      <table>
-        <thead><tr><th>Pos</th><th>Team</th><th>W</th><th>L</th><th>GB</th></tr></thead>
-        <tbody id="standingsBody"></tbody>
-      </table>
-    </div>
-  </div>
 
-  <section class="clips-section" style="grid-column:1/-1">
-    <div class="section-head">
-      <div>
-        <h2 class="font-display">From the <span class="accent">Court</span></h2>
-        <p>Short clips, raw moments, zero filter.</p>
+      <!-- STANDINGS — split by division -->
+      <div class="overview-feed" style="grid-column:1/-1;max-width:none">
+        <div class="standings" style="position:static">
+          <div class="standings-head">
+            <h3>Standings</h3>
+            <a href="#teams">View full table →</a>
+          </div>
+          <div id="standingsContainer"></div>
+        </div>
       </div>
-      <a href="clips.html" class="cta-outline" style="border-color:var(--navy);color:var(--navy)">Browse all clips →</a>
-    </div>
-    <div class="clips-grid" id="clipsGrid" data-limit="6"></div>
-  </section>
-</section>
+
+      <!-- CLIPS -->
+      <section class="clips-section" style="grid-column:1/-1">
+        <div class="section-head">
+          <div>
+            <h2 class="font-display">From the <span class="accent">Court</span></h2>
+            <p>Short clips, raw moments, zero filter.</p>
+          </div>
+          <a href="clips.html" class="cta-outline" style="border-color:var(--navy);color:var(--navy)">Browse all clips →</a>
+        </div>
+        <div class="clips-grid" id="clipsGrid" data-limit="6"></div>
+      </section>
+    </section>
 
     <section class="competition-teams" data-comp-section="teams" style="display:none">
       <h2 class="section-title">Teams</h2>
@@ -138,10 +138,7 @@
           <h3>Full Standings</h3>
           <a href="#bracket">View bracket →</a>
         </div>
-        <table>
-          <thead><tr><th>Pos</th><th>Team</th><th>W</th><th>L</th><th>GB</th></tr></thead>
-          <tbody id="standingsFullBody"></tbody>
-        </table>
+        <div id="standingsFullContainer"></div>
       </div>
     </section>
 
@@ -156,8 +153,8 @@
 
     <section class="competition-bracket" data-comp-section="bracket" style="display:none">
       <h2 class="section-title">Bracket</h2>
-      <div class="bracket" id="bracketRounds"></div>
-      <div id="bracketNonQualifiersWrap" style="margin-top:32px">
+      <div id="bracketRounds"></div>
+      <div id="bracketNonQualifiersWrap" style="display:none">
         <h3 class="section-title-sm">Not in the Bracket</h3>
         <div class="bracket-nonq" id="bracketNonQualifiers"></div>
       </div>
@@ -298,7 +295,6 @@
   document.addEventListener('keydown',function(e){ if(e.key==='Escape'&&isOpen()) setOpen(false); });
   if(mq.addEventListener) mq.addEventListener('change',place); else mq.addListener(place);
   place();
-  /* keep the active section pill visible in the scrolling strip */
   document.addEventListener('comp:page',function(){
     setTimeout(function(){
       var a=document.querySelector('#compSidebarNav a.active');

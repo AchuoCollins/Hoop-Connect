@@ -240,33 +240,46 @@
 
     <!-- BRACKET PANEL -->
     <section class="admin-panel" id="panel-bracket">
-      <h2>Bracket</h2>
-      <p class="sub">
-        Nothing shows on the public Bracket section until you create one here. Pick how many teams go in (2 or more);
-        if the count isn't a power of two, the top seeds get byes. Then enter each match's score and mark it Final —
-        winners advance automatically.
-      </p>
+  <h2>Bracket</h2>
+  <p class="sub">
+    Bracket works per division — Men's, Women's, Mixed. Pick a division, then create/edit its bracket. Standings advance winners automatically.
+  </p>
 
-      <div class="admin-form" style="max-width:none;margin-bottom:24px">
-        <h3>Create Bracket</h3>
-        <div class="admin-form-row" style="grid-template-columns:200px 1fr;align-items:end;margin-bottom:14px">
-          <div class="admin-field" style="margin-bottom:0">
-            <label for="bracketTeamCount">Number of teams</label>
-            <input type="number" id="bracketTeamCount" min="2" max="64" value="8" />
-          </div>
-          <p id="bracketCountHint" style="font-size:12px;color:var(--muted);margin:0"></p>
-        </div>
-        <div id="bracketTeamChecklist" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;margin-bottom:14px"></div>
-        <div class="admin-form-actions" style="flex-wrap:wrap">
-          <span id="bracketSelectedCount" style="align-self:center;font-size:13px;color:var(--muted)"></span>
-          <button type="button" class="admin-btn-primary" id="bracketUseSelectionBtn">Create from selected teams</button>
-          <button type="button" class="admin-btn-secondary" id="bracketRegenBtn">Auto-pick top teams by standings</button>
-          <button type="button" class="admin-btn-danger" id="bracketDeleteBtn">Delete bracket</button>
-        </div>
+  <div class="admin-form" style="max-width:none;margin-bottom:24px">
+    <h3>Division</h3>
+    <div class="admin-form-row" style="grid-template-columns:220px 1fr;align-items:end;margin-bottom:14px">
+      <div class="admin-field" style="margin-bottom:0">
+        <label for="bracketDivisionSelect">Editing bracket for</label>
+        <select id="bracketDivisionSelect">
+          <option value="Men">Men's Division</option>
+          <option value="Women">Women's Division</option>
+          <option value="Mixed">Mixed / Co-ed</option>
+        </select>
       </div>
+      <p style="font-size:12px;color:var(--muted);margin:0">Bracket state is separate for each division.</p>
+    </div>
+  </div>
 
-      <div id="bracketPanelBody"></div>
-    </section>
+  <div class="admin-form" style="max-width:none;margin-bottom:24px">
+    <h3>Create Bracket</h3>
+    <div class="admin-form-row" style="grid-template-columns:200px 1fr;align-items:end;margin-bottom:14px">
+      <div class="admin-field" style="margin-bottom:0">
+        <label for="bracketTeamCount">Number of teams</label>
+        <input type="number" id="bracketTeamCount" min="2" max="64" value="8" />
+      </div>
+      <p id="bracketCountHint" style="font-size:12px;color:var(--muted);margin:0"></p>
+    </div>
+    <div id="bracketTeamChecklist" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;margin-bottom:14px"></div>
+    <div class="admin-form-actions" style="flex-wrap:wrap">
+      <span id="bracketSelectedCount" style="align-self:center;font-size:13px;color:var(--muted)"></span>
+      <button type="button" class="admin-btn-primary" id="bracketUseSelectionBtn">Create from selected teams</button>
+      <button type="button" class="admin-btn-secondary" id="bracketRegenBtn">Auto-pick top teams by standings</button>
+      <button type="button" class="admin-btn-danger" id="bracketDeleteBtn">Delete bracket</button>
+    </div>
+  </div>
+
+  <div id="bracketPanelBody"></div>
+</section>
 
 
     <!-- CLIPS PANEL -->

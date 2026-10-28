@@ -1,6 +1,6 @@
 /* =========================================================
    SITE-SETTINGS.JS — applies data.site to public pages.
-   Include AFTER data.js.
+   Only runs when real data is present. No default flash.
    ========================================================= */
 (function(){
   if(typeof HoopData === 'undefined') return;
@@ -17,9 +17,9 @@
 
   function applySiteSettings(){
     const data = HoopData.load();
-    const s = data.site || {};
+    if(!data || !data.site) return;   /* nothing to paint yet */
+    const s = data.site;
 
-    /* -------- Colors -------- */
     if(s.primaryColor){
       setVar('--navy', s.primaryColor);
       setVar('--navy-mid', s.primaryColor);
@@ -39,7 +39,6 @@
       if(rgb) setVar('--gold-rgb', `${rgb.r},${rgb.g},${rgb.b}`);
     }
 
-    /* -------- Title & meta -------- */
     if(s.title){
       const current = document.title || '';
       const parts = current.split('—').map(x=>x.trim());
@@ -55,7 +54,6 @@
       meta.setAttribute('content', s.metaDescription);
     }
 
-    /* -------- Logo text -------- */
     if(s.title){
       document.querySelectorAll('.logo').forEach(el=>{
         const mark = el.querySelector('.logo-mark');
@@ -73,7 +71,6 @@
       });
     }
 
-    /* -------- Hero -------- */
     const heroTitleEl = document.querySelector('.page-hero .font-display');
     const heroP = document.querySelector('.page-hero p');
     if(heroTitleEl && s.heroTitle){
@@ -88,17 +85,13 @@
     }
     if(heroP && s.heroSubtitle) heroP.textContent = s.heroSubtitle;
 
-    /* -------- Footer: ONE phone contact -------- */
     document.querySelectorAll('[data-footer-phone]').forEach(el=>{
       if(s.footerPhone) el.textContent = s.footerPhone;
     });
-
-    /* Footer brand blurb */
     document.querySelectorAll('[data-footer-blurb]').forEach(el=>{
       if(s.tagline) el.textContent = s.tagline + '. Every game. Every clip. Every team — connected.';
     });
 
-    /* -------- Page intros -------- */
     const intros = {
       'about': s.aboutIntro,
       'about-how': s.aboutHowItWorks,
@@ -112,7 +105,6 @@
       document.querySelectorAll(`[data-page-intro="${k}"]`).forEach(el=>{ el.textContent = v; });
     });
 
-    /* -------- Contact page markers -------- */
     if(s.contactEmail) document.querySelectorAll('[data-contact-email]').forEach(el=>{
       if(el.tagName === 'A'){ el.href = 'mailto:' + s.contactEmail; el.textContent = s.contactEmail; }
       else el.textContent = s.contactEmail;
@@ -126,12 +118,11 @@
       el.textContent = s.contactLocation;
     });
 
-    /* -------- Social links -------- */
     if(s.socialTikTok) document.querySelectorAll('a[aria-label="TikTok"]').forEach(a=>{ a.href = s.socialTikTok; });
     if(s.socialInstagram) document.querySelectorAll('a[aria-label="Instagram"]').forEach(a=>{ a.href = s.socialInstagram; });
   }
 
-  try { applySiteSettings(); } catch(e){ console.warn('[site-settings] initial:', e); }
+  /* No initial synchronous call — nothing paints until data is real. */
   if(typeof HoopData.ready === 'function'){
     HoopData.ready().then(() => {
       try { applySiteSettings(); } catch(e){ console.warn('[site-settings] ready:', e); }

@@ -14,10 +14,8 @@ const HOOP_DEFAULT_SITE = {
   heroTitle: 'Every Court. Every Competition.',
   heroSubtitle: "Hoop Connect is where local basketball competitions get a home online — live scores, brackets, news and clips, all in one place. Pick a competition below to follow along.",
 
-  /* Footer: ONE phone number, +237 + 9 digits */
   footerPhone: '+237 6XX XXX XXX',
 
-  /* Used on the Contact page */
   contactEmail: 'media@hoopconnect.cm',
   contactLocation: 'Buea, Cameroon',
 
@@ -27,7 +25,6 @@ const HOOP_DEFAULT_SITE = {
   primaryColor: '#0a1f44',
   accentColor: '#ff7a3d',
 
-  /* Editable page intros */
   aboutIntro: "Hoop Connect is a home for grassroots basketball competitions to run their season online — live scores as they happen, a real bracket, team rosters, news write-ups, and courtside clips, without needing their own website built from scratch.",
   aboutHowItWorks: "An organizer manages their competition's teams, schedule, live scores and bracket from one dashboard. As games are played, the site updates — standings recalculate, bracket winners advance, and the live ticker reflects what's happening on court.",
   aboutBehindIt: "Hoop Connect started as a way to give the Molyko Basketball Challenge a proper live-scores presence, and grew into a platform other local competitions can use too. If you run a tournament and want it featured here, get in touch.",
@@ -104,7 +101,10 @@ const HOOP_DEFAULTS = {
   competitions: [HOOP_DEFAULT_MBC]
 };
 
-/* Cache so we can serve sync reads after an async fetch completes. */
+/* ---------------------------------------------------------
+   In-memory cache. null = "not loaded yet".
+   load() returns null until ready() finishes.
+   --------------------------------------------------------- */
 let hoopCache = null;
 let hoopReadyPromise = null;
 
@@ -128,24 +128,28 @@ async function hoopFetchRemote(){
 }
 
 const HoopData = {
-  /* Call this once on page load, then load() returns the data synchronously. */
+  /* Resolves with the loaded data, or null if there was no data / fetch failed.
+     Callers must handle the null case by showing an empty state. */
   ready(){
     if(hoopReadyPromise) return hoopReadyPromise;
     hoopReadyPromise = (async ()=>{
       const remote = await hoopFetchRemote();
-      hoopCache = remote || JSON.parse(JSON.stringify(HOOP_DEFAULTS));
+      hoopCache = remote || null;
       return hoopCache;
     })();
     return hoopReadyPromise;
   },
 
-  /* Synchronous. Before ready() completes, returns defaults. */
+  /* Returns the currently cached data, or null if ready() hasn't resolved yet. */
   load(){
-    if(!hoopCache) this.ready();
-    return hoopCache || JSON.parse(JSON.stringify(HOOP_DEFAULTS));
+    return hoopCache;
   },
 
-  /* Async. Writes to Supabase + updates the local cache. */
+  /* True once ready() has resolved (regardless of success/failure). */
+  isReady(){
+    return !!hoopCache;
+  },
+
   async save(payload){
     hoopCache = payload;
     try{
@@ -160,9 +164,6 @@ const HoopData = {
     }
   },
 
-  /* Called by realtime when a new payload arrives from Supabase.
-     Updates the cache without a network request so the next load()
-     returns fresh data. */
   _updateCache(payload){
     if(!payload || !Array.isArray(payload.competitions)) return;
     hoopCache = {
@@ -198,6 +199,7 @@ const HoopData = {
   },
 
   activeCompetition(data){
+    if(!data) return null;
     const id = this.activeCompetitionId();
     const comp = this.getCompetition(data, id);
     if(comp) return comp;

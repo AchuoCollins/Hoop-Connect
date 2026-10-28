@@ -1,5 +1,6 @@
 /* =========================================================
    ADMIN.JS — CRUD dashboard for HoopData
+   Bracket is per-division (Men / Women / Mixed)
    ========================================================= */
 let data = HoopData.load();
 
@@ -83,7 +84,7 @@ document.getElementById('importDataFile').addEventListener('change', (e)=>{
       toast('That file doesn\'t look like a Hoop Connect backup (missing competitions)', true);
       return;
     }
-    if(!confirm('Import this backup? It replaces everything currently in Teams, Live Scores, Schedule, Bracket, News, Clips and Watch Live.')) return;
+    if(!confirm('Import this backup? It replaces everything currently in Teams, Live Scores, Schedule, Bracket, Clips and Watch Live.')) return;
     data = {
       site: Object.assign({}, parsed.site || {}),
       competitions: parsed.competitions
@@ -114,6 +115,16 @@ document.getElementById('resetDataBtn').addEventListener('click', async (e)=>{
    TEAMS
    ========================================================= */
 const teamForm = document.getElementById('teamForm');
+
+function hoopEnsureBracketsMap(comp){
+  if(!comp.brackets){
+    comp.brackets = {};
+    if(comp.bracket) comp.brackets.Men = comp.bracket;
+  }
+  comp.bracket = comp.brackets.Men || null;
+  return comp.brackets;
+}
+
 function renderTeamsTable(){
   const body = document.getElementById('teamsTableBody');
   body.innerHTML = activeComp().teams.map(t=>{
@@ -142,18 +153,27 @@ function renderTeamsTable(){
   body.querySelectorAll('[data-delete-team]').forEach(btn=>{
     btn.addEventListener('click', async ()=>{
       const id = btn.dataset.deleteTeam;
-      const involved = activeComp().games.filter(g=>g.teamA===id || g.teamB===id);
-      const inBracket = HoopBracket.exists(activeComp().bracket) && activeComp().bracket.seeds.includes(id);
+      const comp = activeComp();
+      const map = hoopEnsureBracketsMap(comp);
+      const involved = comp.games.filter(g=>g.teamA===id || g.teamB===id);
+      const inBracketDivision = Object.keys(map).find(div=>{
+        const b = map[div];
+        return HoopBracket.exists(b) && b.seeds.includes(id);
+      });
+      const inBracket = !!inBracketDivision;
       let warn = 'Delete this team?';
       if(involved.length) warn += '\n\n\u2022 ' + involved.length + ' game(s) involving it will be deleted (and any records they added to other teams undone).';
-      if(inBracket) warn += '\n\u2022 It is in the bracket, so the bracket will be deleted and must be recreated.';
+      if(inBracket) warn += '\n\u2022 It is in the ' + inBracketDivision + ' bracket, so that bracket will be deleted and must be recreated.';
       if(!confirm(warn)) return;
       involved.forEach(g=>{ revertRecord(g); });
-      activeComp().games = activeComp().games.filter(g=>g.teamA!==id && g.teamB!==id);
-      if(inBracket) activeComp().bracket = null;
-      activeComp().teams = activeComp().teams.filter(t=>t.id!==id);
-      activeComp().watch = activeComp().watch || {};
-      if(!activeComp().games.some(x=>x.status==='live')) activeComp().watch.live = false;
+      comp.games = comp.games.filter(g=>g.teamA!==id && g.teamB!==id);
+      if(inBracket){
+        delete map[inBracketDivision];
+        comp.bracket = map.Men || null;
+      }
+      comp.teams = comp.teams.filter(t=>t.id!==id);
+      comp.watch = comp.watch || {};
+      if(!comp.games.some(x=>x.status==='live')) comp.watch.live = false;
       if(!(await persist())) return; refreshAll();
       toast('Team deleted' + (involved.length || inBracket ? ' \u2014 related games/bracket cleaned up' : ''));
     });
@@ -266,7 +286,7 @@ function loadTeamIntoForm(id){
   document.getElementById('teamLosses').value = t.losses;
   const genderEl = document.getElementById('teamGender');
   if(genderEl) genderEl.value = t.gender || 'Men';
-  
+
   setTeamLogoPreview(t.logo || '');
   rosterPlayers = (t.players || []).map(p=>Object.assign({}, p));
   resetPlayerFields();
@@ -336,8 +356,7 @@ function renderGamesTable(){
     if(order[x.status] !== order[y.status]) return order[x.status]-order[y.status];
     return ((x.date||'9999')+(x.time||'')).localeCompare((y.date||'9999')+(y.time||''));
   });
-  
-  // Now includes a Delete button on every row
+
   ls.innerHTML = all.map(g=>{
     const info = g.status==='upcoming'
       ? esc([g.date,g.time].filter(Boolean).join(' \u00b7 ') || 'TBD')
@@ -368,19 +387,18 @@ function renderGamesTable(){
       </td>
     </tr>`).join('') || '<tr><td colspan="4" style="color:var(--muted)">Nothing scheduled yet.</td></tr>';
 
-  // Attach listeners
   document.querySelectorAll('[data-open-game]').forEach(r=>r.addEventListener('click',(e)=>{
     if(e.target.closest('button')) return;
     openScoreboard(r.dataset.openGame);
   }));
-  
+
   document.querySelectorAll('[data-edit-sc]').forEach(b=>b.addEventListener('click',()=>loadScheduleIntoForm(b.dataset.editSc)));
-  
+
   document.querySelectorAll('[data-delete-game]').forEach(b=>b.addEventListener('click', async (e)=>{
     e.stopPropagation();
     if(!confirm('Are you sure you want to delete this game? This cannot be undone.')) return;
     activeComp().games = activeComp().games.filter(g=>g.id!==b.dataset.deleteGame);
-    if(!(await persist())) return; 
+    if(!(await persist())) return;
     renderGamesTable();
     refreshAll();
     toast('Game deleted');
@@ -396,53 +414,75 @@ function refreshAll(){
   loadWatchForm();
 }
 
-function bracketMatchFor(g){
-  if(!HoopBracket.exists(activeComp().bracket) || !g.teamA || !g.teamB) return null;
-  for(const round of HoopBracket.computeRounds(activeComp().bracket)){
-    for(const m of round.matches){
-      if(m.bye || !m.teamA || !m.teamB) continue;
-      const same = (m.teamA===g.teamA && m.teamB===g.teamB) || (m.teamA===g.teamB && m.teamB===g.teamA);
-      if(!same) continue;
-      if(m.status==='final' && m.key!==g.bracketKey) continue;
-      return m;
+/* =========================================================
+   GAME ↔ BRACKET SYNC — now division-aware
+   ========================================================= */
+function findGameBracketHit(g){
+  const comp = activeComp();
+  const map = hoopEnsureBracketsMap(comp);
+  for(const div of Object.keys(map)){
+    const bracket = map[div];
+    if(!HoopBracket.exists(bracket) || !g.teamA || !g.teamB) continue;
+    for(const round of HoopBracket.computeRounds(bracket)){
+      for(const m of round.matches){
+        if(m.bye || !m.teamA || !m.teamB) continue;
+        const same = (m.teamA===g.teamA && m.teamB===g.teamB) || (m.teamA===g.teamB && m.teamB===g.teamA);
+        if(!same) continue;
+        if(m.status==='final' && m.key!==g.bracketKey) continue;
+        return { division: div, match: m, bracket };
+      }
     }
   }
   return null;
 }
-function clearDownstream(key){
-  if(!HoopBracket.exists(activeComp().bracket)) return;
+
+function clearDownstreamInDivision(division, key){
+  const comp = activeComp();
+  const map = hoopEnsureBracketsMap(comp);
+  const bracket = map[division];
+  if(!HoopBracket.exists(bracket)) return;
   let [r, i] = key.split('-').map(Number);
-  const total = Math.log2(HoopBracket.bracketSize(activeComp().bracket.seeds.length));
-  while(r + 1 < total){ r += 1; i = Math.floor(i/2); delete activeComp().bracket.results[r + '-' + i]; }
+  const total = Math.log2(HoopBracket.bracketSize(bracket.seeds.length));
+  while(r + 1 < total){ r += 1; i = Math.floor(i/2); delete bracket.results[r + '-' + i]; }
 }
+
 function syncGameToBracket(g){
-  if(!HoopBracket.exists(activeComp().bracket)){ delete g.bracketKey; return false; }
+  const comp = activeComp();
+  const map = hoopEnsureBracketsMap(comp);
+  if(!Object.keys(map).length){ delete g.bracketKey; delete g.bracketDivision; return false; }
+
   if(g.status === 'upcoming'){
-    if(g.bracketKey){
-      const old = activeComp().bracket.results[g.bracketKey];
-      if(old && old.status==='final') clearDownstream(g.bracketKey);
-      delete activeComp().bracket.results[g.bracketKey];
-      delete g.bracketKey;
+    if(g.bracketKey && g.bracketDivision && map[g.bracketDivision]){
+      const old = map[g.bracketDivision].results[g.bracketKey];
+      if(old && old.status==='final') clearDownstreamInDivision(g.bracketDivision, g.bracketKey);
+      delete map[g.bracketDivision].results[g.bracketKey];
     }
+    delete g.bracketKey;
+    delete g.bracketDivision;
     return false;
   }
-  const m = bracketMatchFor(g);
-  if(!m) return false;
-  const prev = activeComp().bracket.results[m.key];
+
+  const hit = findGameBracketHit(g);
+  if(!hit) return false;
+
+  const { division, match, bracket } = hit;
+  const prev = bracket.results[match.key];
   const wasFinal = !!(prev && prev.status==='final');
   const nowFinal = g.status === 'final';
-  const sameOrder = m.teamA === g.teamA;
-  activeComp().bracket.results[m.key] = {
+  const sameOrder = match.teamA === g.teamA;
+  bracket.results[match.key] = {
     scoreA: (sameOrder ? g.scoreA : g.scoreB) || 0,
     scoreB: (sameOrder ? g.scoreB : g.scoreA) || 0,
     status: nowFinal ? 'final' : 'live',
     court: g.court || (prev && prev.court) || '',
     note: (prev && prev.note) || ''
   };
-  if(wasFinal && !nowFinal) clearDownstream(m.key);
-  g.bracketKey = m.key;
+  if(wasFinal && !nowFinal) clearDownstreamInDivision(division, match.key);
+  g.bracketKey = match.key;
+  g.bracketDivision = division;
   return true;
 }
+
 function applyRecord(g){
   revertRecord(g);
   if(g.bracketKey || g.scoreA === g.scoreB) return null;
@@ -472,6 +512,9 @@ function syncWatch(g, event){
   }
 }
 
+/* =========================================================
+   SCOREBOARD MODAL
+   ========================================================= */
 const scoreModal = document.getElementById('scoreModal');
 let openGameId = null;
 
@@ -495,7 +538,7 @@ function refreshScoreboard(){
   document.getElementById('smBack').style.display = isFinal ? 'none' : '';
   const note = document.getElementById('smNote');
   if(g.bracketKey){
-    note.textContent = 'Playoff game \u2014 the score is mirrored into the bracket and the winner advances. It does not change team records.';
+    note.textContent = 'Playoff game (' + (g.bracketDivision || 'Men') + "'s bracket) \u2014 the score is mirrored into the bracket and the winner advances. It does not change team records.";
   } else if(g.status === 'final' && g.recorded){
     note.textContent = 'Recorded: ' + teamName(g.recorded.w) + ' +1 win, ' + teamName(g.recorded.l) + ' +1 loss.';
   } else {
@@ -578,6 +621,9 @@ document.getElementById('scoreModalClose').addEventListener('click', closeScoreb
 scoreModal.addEventListener('click', (e)=>{ if(e.target===scoreModal) closeScoreboard(); });
 document.addEventListener('keydown', (e)=>{ if(e.key==='Escape' && scoreModal.style.display!=='none') closeScoreboard(); });
 
+/* =========================================================
+   SCHEDULE FORM
+   ========================================================= */
 function loadScheduleIntoForm(id){
   const g = activeComp().games.find(x=>x.id===id);
   if(!g) return;
@@ -624,8 +670,63 @@ scForm.addEventListener('submit', async (e)=>{
 });
 
 /* =========================================================
-   BRACKET
+   BRACKET — per division
    ========================================================= */
+let bracketDivision = 'Men';
+
+function divisionRank(d){
+  const r = { Men: 0, Women: 1, Mixed: 2 };
+  return (r[d] != null) ? r[d] : 99;
+}
+
+function activeDivisionTeams(){
+  return (activeComp().teams || []).filter(t => (t.gender || 'Men') === bracketDivision);
+}
+
+function currentBracket(){
+  const comp = activeComp();
+  const map = hoopEnsureBracketsMap(comp);
+  return map[bracketDivision] || null;
+}
+
+function setCurrentBracket(bracket){
+  const comp = activeComp();
+  const map = hoopEnsureBracketsMap(comp);
+  if(bracket === null) delete map[bracketDivision];
+  else map[bracketDivision] = bracket;
+  comp.bracket = map.Men || null;
+}
+
+function renderBracketDivisionSelect(){
+  const sel = document.getElementById('bracketDivisionSelect');
+  if(!sel) return;
+  const comp = activeComp();
+  const divisions = [...new Set((comp.teams || []).map(t => t.gender || 'Men'))]
+    .sort((a,b) => divisionRank(a) - divisionRank(b));
+
+  const previous = sel.value || bracketDivision;
+  if(divisions.length){
+    sel.innerHTML = divisions.map(d=>{
+      const label = d === 'Mixed' ? 'Mixed / Co-ed' : d + "'s Division";
+      return `<option value="${d}">${label}</option>`;
+    }).join('');
+    bracketDivision = divisions.includes(previous) ? previous : divisions[0];
+    sel.value = bracketDivision;
+  } else {
+    sel.innerHTML = '<option value="Men">Men\'s Division</option>';
+    bracketDivision = 'Men';
+  }
+}
+
+const bracketDivisionSelectEl = document.getElementById('bracketDivisionSelect');
+if(bracketDivisionSelectEl){
+  bracketDivisionSelectEl.addEventListener('change', (e)=>{
+    bracketDivision = e.target.value;
+    renderBracketPanel();
+    renderBracketChecklist();
+  });
+}
+
 function renderBracketMatchEditor(m){
   const teamAObj = m.teamA ? HoopData.teamById(activeComp().teams, m.teamA) : null;
   const teamBObj = m.teamB ? HoopData.teamById(activeComp().teams, m.teamB) : null;
@@ -665,13 +766,15 @@ function renderBracketMatchEditor(m){
 }
 
 function renderBracketPanel(){
+  renderBracketDivisionSelect();
   const el = document.getElementById('bracketPanelBody');
   if(!el) return;
-  if(!HoopBracket.exists(activeComp().bracket)){
-    el.innerHTML = '<p style="color:var(--muted);font-size:14px">No bracket yet — create one above.</p>';
+  const bracket = currentBracket();
+  if(!HoopBracket.exists(bracket)){
+    el.innerHTML = '<p style="color:var(--muted);font-size:14px">No bracket for this division yet — create one above.</p>';
     return;
   }
-  const rounds = HoopBracket.computeRounds(activeComp().bracket);
+  const rounds = HoopBracket.computeRounds(bracket);
   el.innerHTML = rounds.map(round=>`
     <h3 style="font-family:'Bebas Neue';font-size:20px;color:var(--navy);letter-spacing:0.03em;margin:0 0 12px">${esc(round.name)}</h3>
     <div class="admin-form-row" style="grid-template-columns:repeat(auto-fit,minmax(260px,1fr));margin-bottom:28px">
@@ -684,7 +787,9 @@ function renderBracketPanel(){
     const saveBtn = card.querySelector('[data-save-match]');
     if(!saveBtn) return;
     saveBtn.addEventListener('click', async ()=>{
-      activeComp().bracket.results[key] = {
+      const bracket = currentBracket();
+      if(!bracket) return;
+      bracket.results[key] = {
         scoreA: parseInt(card.querySelector('[data-f="scoreA"]').value,10) || 0,
         scoreB: parseInt(card.querySelector('[data-f="scoreB"]').value,10) || 0,
         status: card.querySelector('[data-f="status"]').value,
@@ -699,7 +804,8 @@ function renderBracketPanel(){
 }
 
 function bracketWantedCount(){
-  const max = Math.min(HOOP_BRACKET_MAX, activeComp().teams.length);
+  const teams = activeDivisionTeams();
+  const max = Math.min(HOOP_BRACKET_MAX, teams.length);
   let n = parseInt(document.getElementById('bracketTeamCount').value, 10);
   if(isNaN(n)) n = HOOP_BRACKET_MIN;
   return Math.max(HOOP_BRACKET_MIN, Math.min(n, Math.max(max, HOOP_BRACKET_MIN)));
@@ -708,37 +814,41 @@ function bracketWantedCount(){
 function renderBracketChecklist(){
   const el = document.getElementById('bracketTeamChecklist');
   if(!el) return;
+  const teams = activeDivisionTeams();
   const countInput = document.getElementById('bracketTeamCount');
-  countInput.max = Math.max(HOOP_BRACKET_MIN, Math.min(HOOP_BRACKET_MAX, activeComp().teams.length));
-  const current = HoopBracket.exists(activeComp().bracket) ? new Set(activeComp().bracket.seeds) : new Set();
-  if(HoopBracket.exists(activeComp().bracket)) countInput.value = activeComp().bracket.seeds.length;
-  el.innerHTML = activeComp().teams.map(t=>`
+  countInput.max = Math.max(HOOP_BRACKET_MIN, Math.min(HOOP_BRACKET_MAX, teams.length));
+  const bracket = currentBracket();
+  const current = HoopBracket.exists(bracket) ? new Set(bracket.seeds) : new Set();
+  if(HoopBracket.exists(bracket)) countInput.value = bracket.seeds.length;
+  el.innerHTML = teams.map(t=>`
     <label class="admin-field-check" style="border:1px solid var(--line-strong);border-radius:8px;padding:8px 10px">
       <input type="checkbox" data-bracket-pick="${esc(t.id)}" ${current.has(t.id)?'checked':''} />
       <span style="font-size:13px">${esc(t.name)} <span style="color:var(--muted)">(${t.wins}-${t.losses})</span></span>
-    </label>`).join('') || '<p style="color:var(--muted);font-size:13px">No teams registered yet.</p>';
+    </label>`).join('') || '<p style="color:var(--muted);font-size:13px">No teams in this division yet.</p>';
   el.querySelectorAll('[data-bracket-pick]').forEach(cb=>cb.addEventListener('change', updateBracketSelectionCount));
   updateBracketSelectionCount();
 }
 
 function updateBracketSelectionCount(){
+  const teams = activeDivisionTeams();
   const want = bracketWantedCount();
   const checked = document.querySelectorAll('#bracketTeamChecklist [data-bracket-pick]:checked').length;
   const label = document.getElementById('bracketSelectedCount');
   const hint = document.getElementById('bracketCountHint');
   const p = HoopBracket.bracketSize(want);
   const byes = p - want;
-  hint.textContent = activeComp().teams.length < HOOP_BRACKET_MIN
-    ? 'Register at least 2 teams first.'
-    : `${want} teams → ${Math.log2(p)} round${Math.log2(p)===1?'':'s'}` + (byes ? `, ${byes} bye${byes===1?'':'s'} for the top seeds` : ', no byes');
+  hint.textContent = teams.length < HOOP_BRACKET_MIN
+    ? 'Add at least 2 teams to this division first.'
+    : `${want} teams \u2192 ${Math.log2(p)} round${Math.log2(p)===1?'':'s'}` + (byes ? `, ${byes} bye${byes===1?'':'s'} for the top seeds` : ', no byes');
   label.textContent = checked + ' of ' + want + ' selected';
   label.style.color = checked===want ? 'var(--muted)' : '#dc2626';
-  document.getElementById('bracketUseSelectionBtn').disabled = activeComp().teams.length < HOOP_BRACKET_MIN || checked !== want;
-  document.getElementById('bracketRegenBtn').disabled = activeComp().teams.length < HOOP_BRACKET_MIN;
-  document.getElementById('bracketDeleteBtn').style.display = HoopBracket.exists(activeComp().bracket) ? '' : 'none';
+  document.getElementById('bracketUseSelectionBtn').disabled = teams.length < HOOP_BRACKET_MIN || checked !== want;
+  document.getElementById('bracketRegenBtn').disabled = teams.length < HOOP_BRACKET_MIN;
+  document.getElementById('bracketDeleteBtn').style.display = HoopBracket.exists(currentBracket()) ? '' : 'none';
 }
 
-document.getElementById('bracketTeamCount').addEventListener('input', updateBracketSelectionCount);
+const bracketTeamCountEl = document.getElementById('bracketTeamCount');
+if(bracketTeamCountEl) bracketTeamCountEl.addEventListener('input', updateBracketSelectionCount);
 
 async function bracketSaved(msg){
   if(!(await persist())) return;
@@ -747,24 +857,25 @@ async function bracketSaved(msg){
   toast(msg);
 }
 function confirmReplaceBracket(){
-  return !HoopBracket.exists(activeComp().bracket) || confirm('This replaces the current bracket and wipes every recorded result. Continue?');
+  return !HoopBracket.exists(currentBracket()) ||
+    confirm('This replaces the ' + bracketDivision + ' bracket and wipes every recorded result. Continue?');
 }
 document.getElementById('bracketUseSelectionBtn').addEventListener('click', async ()=>{
   const ids = [...document.querySelectorAll('#bracketTeamChecklist [data-bracket-pick]:checked')].map(cb=>cb.dataset.bracketPick);
   if(ids.length < HOOP_BRACKET_MIN || ids.length !== bracketWantedCount()) return;
   if(!confirmReplaceBracket()) return;
-  activeComp().bracket = HoopBracket.createFromSelection(activeComp().teams, ids);
-  await bracketSaved('Bracket created');
+  setCurrentBracket(HoopBracket.createFromSelection(activeDivisionTeams(), ids));
+  await bracketSaved(bracketDivision + ' bracket created');
 });
 document.getElementById('bracketRegenBtn').addEventListener('click', async ()=>{
   if(!confirmReplaceBracket()) return;
-  activeComp().bracket = HoopBracket.createFromStandings(activeComp().teams, bracketWantedCount());
-  await bracketSaved('Bracket created from standings');
+  setCurrentBracket(HoopBracket.createFromStandings(activeDivisionTeams(), bracketWantedCount()));
+  await bracketSaved(bracketDivision + ' bracket created from standings');
 });
 document.getElementById('bracketDeleteBtn').addEventListener('click', async ()=>{
-  if(!confirm('Delete the bracket? The public Bracket page will be empty until you create a new one.')) return;
-  activeComp().bracket = null;
-  await bracketSaved('Bracket deleted');
+  if(!confirm('Delete the ' + bracketDivision + ' bracket? The public Bracket page for this division will be empty until you create a new one.')) return;
+  setCurrentBracket(null);
+  await bracketSaved(bracketDivision + ' bracket deleted');
 });
 
 /* =========================================================
@@ -1004,7 +1115,6 @@ settingsForm.addEventListener('submit', async (e)=>{
   e.preventDefault();
   const getVal = id => { const el = document.getElementById(id); return el ? el.value.trim() : ''; };
 
-  /* Validate footer phone: must be +237 followed by 9 digits */
   const footerPhone = getVal('setFooterPhone');
   if(footerPhone){
     const digits = footerPhone.replace(/\D/g, '');
@@ -1134,7 +1244,6 @@ competitionForm.addEventListener('submit', async (e)=>{
   if(editingId){
     const idx = data.competitions.findIndex(c=>c.id===editingId);
     if(idx>-1){
-      // Preserve teams/games/etc. on edit
       data.competitions[idx] = Object.assign({}, data.competitions[idx], payload);
     }
   } else {
@@ -1142,6 +1251,7 @@ competitionForm.addEventListener('submit', async (e)=>{
     data.competitions.push(Object.assign({
       teams: [], games: [], clips: [],
       bracket: null,
+      brackets: {},
       watch: {title:'', url:'', tiktokUrl:'', live:false, description:''}
     }, payload));
   }

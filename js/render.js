@@ -1,6 +1,8 @@
 /* =========================================================
    RENDER.JS — draws the ACTIVE competition's data into
    whichever containers exist on the current page.
+   Shows loading skeletons until data is ready.
+   Standings and Brackets are split by division (Men/Women/Mixed).
    ========================================================= */
 function hoopSafeUrl(url){
   url = String(url||'').trim();
@@ -15,6 +17,14 @@ function hoopEsc(str){
 }
 function hoopSortedTeams(teams){
   return [...teams].sort((a,b)=> (b.wins-b.losses) - (a.wins-a.losses) || b.wins-a.wins);
+}
+function hoopDivisionRank(d){
+  const r = { Men: 0, Women: 1, Mixed: 2 };
+  return (r[d] != null) ? r[d] : 99;
+}
+function hoopDivisionLabel(d){
+  if(d === 'Mixed') return 'Mixed Division';
+  return d + "'s Division";
 }
 
 const HOOP_ICONS = {
@@ -49,9 +59,58 @@ function hoopTeamBadge(t, sizeClass){
   return `<div class="logo${cls}" style="background:${hoopEsc(t.color)}">${hoopEsc(t.id)}</div>`;
 }
 
-/* ---------- TEAM MODAL LOGIC ---------- */
-function hoopOpenTeamModal(teamId) {
+/* =========================================================
+   LOADING SKELETONS
+   ========================================================= */
+function hoopShowSkeleton(el, kind){
+  if(!el) return;
+  kind = kind || 'cards';
+  if(kind === 'cards'){
+    el.innerHTML = Array.from({length:4}).map(()=>`
+      <div class="skeleton skeleton-card">
+        <div class="skeleton-thumb"></div>
+        <div class="skeleton-body">
+          <div class="skeleton-line" style="width:70%"></div>
+          <div class="skeleton-line" style="width:45%"></div>
+        </div>
+      </div>`).join('');
+  } else if(kind === 'clips'){
+    el.innerHTML = Array.from({length:6}).map(()=>`<div class="skeleton skeleton-clip"></div>`).join('');
+  } else if(kind === 'table'){
+    el.innerHTML = Array.from({length:6}).map(()=>`
+      <tr><td colspan="5"><div class="skeleton skeleton-line" style="width:100%;height:22px;margin:4px 0"></div></td></tr>`).join('');
+  } else if(kind === 'list'){
+    el.innerHTML = Array.from({length:4}).map(()=>`
+      <div class="skeleton skeleton-card" style="min-height:auto;padding:14px 16px">
+        <div class="skeleton-line" style="width:60%"></div>
+        <div class="skeleton-line" style="width:35%;margin-top:8px"></div>
+      </div>`).join('');
+  } else if(kind === 'competitions'){
+    el.innerHTML = Array.from({length:2}).map(()=>`
+      <div class="skeleton skeleton-competition">
+        <div class="skeleton-thumb" style="min-height:200px"></div>
+        <div class="skeleton-body">
+          <div class="skeleton-line" style="width:40%"></div>
+          <div class="skeleton-line" style="width:70%;height:22px;margin-top:6px"></div>
+          <div class="skeleton-line" style="width:90%;margin-top:10px"></div>
+          <div class="skeleton-line" style="width:55%;margin-top:6px"></div>
+        </div>
+      </div>`).join('');
+  } else {
+    el.innerHTML = `<div class="skeleton skeleton-line" style="width:100%;height:80px"></div>`;
+  }
+}
+function hoopShowEmpty(el, msg){
+  if(!el) return;
+  el.innerHTML = `<div class="hoop-empty">${hoopEsc(msg || 'Nothing to show yet.')}</div>`;
+}
+
+/* =========================================================
+   TEAM MODAL
+   ========================================================= */
+function hoopOpenTeamModal(teamId){
   const data = HoopData.load();
+  if(!data) return;
   const comp = HoopData.activeCompetition(data);
   if(!comp) return;
   const t = comp.teams.find(x=>x.id===teamId);
@@ -65,7 +124,7 @@ function hoopOpenTeamModal(teamId) {
   document.getElementById('teamModalRecord').textContent = t.wins + '-' + t.losses;
 
   const logoEl = document.getElementById('teamModalLogo');
-  if(t.logo) {
+  if(t.logo){
     logoEl.innerHTML = `<img src="${hoopEsc(t.logo)}" alt="${hoopEsc(t.name)}" />`;
     logoEl.style.background = '#fff';
   } else {
@@ -75,7 +134,7 @@ function hoopOpenTeamModal(teamId) {
 
   const rosterEl = document.getElementById('teamModalPlayers');
   const players = t.players || [];
-  if(players.length === 0) {
+  if(players.length === 0){
     rosterEl.innerHTML = '<p style="color:var(--muted);font-size:14px">No players listed yet.</p>';
   } else {
     rosterEl.innerHTML = `<div class="roster-list">
@@ -93,11 +152,10 @@ function hoopOpenTeamModal(teamId) {
   document.getElementById('teamModal').style.display = 'flex';
 }
 
-// Attach modal close events once
 document.addEventListener('DOMContentLoaded', () => {
   const modal = document.getElementById('teamModal');
   const closeBtn = document.getElementById('teamModalClose');
-  if(modal && closeBtn) {
+  if(modal && closeBtn){
     closeBtn.addEventListener('click', () => modal.style.display = 'none');
     modal.addEventListener('click', (e) => {
       if(e.target === modal) modal.style.display = 'none';
@@ -105,19 +163,20 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 });
 
-
-/* ---------- COMPETITION CARDS ---------- */
+/* =========================================================
+   COMPETITION CARDS
+   ========================================================= */
 function hoopRenderCompetitionCards(data){
   const el = document.getElementById('competitionsGrid');
   if(!el) return;
+  if(!data){ hoopShowSkeleton(el, 'competitions'); return; }
   const active = (data.competitions||[]).filter(c=>c.active);
   if(!active.length){
-    el.innerHTML = '<p style="color:var(--muted);font-size:14px">No competitions yet.</p>';
+    hoopShowEmpty(el, 'No competitions yet.');
     return;
   }
   el.classList.add('competitions-list');
   el.classList.remove('is-grid');
-
   el.innerHTML = active.map(c=>{
     const initials = (c.name||'HC').split(/\s+/).map(w=>w[0]||'').join('').slice(0,2).toUpperCase();
     const cover = c.coverImg || '';
@@ -140,10 +199,13 @@ function hoopRenderCompetitionCards(data){
   }).join('');
 }
 
-/* ---------- TEAM PILLS (STRIP) ---------- */
+/* =========================================================
+   TEAM PILLS / CARDS
+   ========================================================= */
 function hoopRenderTeamPills(data, comp){
   const el = document.getElementById('teamsScroll');
   if(!el) return;
+  if(!comp){ hoopShowSkeleton(el, 'list'); return; }
   el.innerHTML = comp.teams.map(t=>`
     <div class="team-pill" onclick="hoopOpenTeamModal('${hoopEsc(t.id)}')" style="cursor:pointer">
       ${hoopTeamBadge(t)}
@@ -152,10 +214,10 @@ function hoopRenderTeamPills(data, comp){
     </div>`).join('') || '<p style="color:var(--muted);font-size:14px;padding:10px 0">No teams registered yet.</p>';
 }
 
-/* ---------- TEAM CARDS (TEAMS PAGE) ---------- */
 function hoopRenderTeamCards(data, comp){
   const el = document.getElementById('teamsGrid');
   if(!el) return;
+  if(!comp){ hoopShowSkeleton(el, 'cards'); return; }
   const sorted = hoopSortedTeams(comp.teams);
   el.innerHTML = sorted.map((t,i)=>{
     const players = t.players || [];
@@ -170,23 +232,87 @@ function hoopRenderTeamCards(data, comp){
   }).join('') || '<p style="color:var(--muted);font-size:14px;padding:10px 0">No teams registered yet.</p>';
 }
 
-/* ---------- STANDINGS ---------- */
+/* =========================================================
+   STANDINGS — split by division
+   ========================================================= */
 function hoopRenderStandings(data, comp){
-  const bodies = [document.getElementById('standingsBody'), document.getElementById('standingsFullBody')];
-  const sorted = hoopSortedTeams(comp.teams);
-  const leaderDiff = sorted.length ? (sorted[0].wins - sorted[0].losses) : 0;
-  const html = sorted.map((t,i)=>{
-    const gb = i===0 ? '—' : (( (leaderDiff - (t.wins-t.losses)) /2 ).toFixed(1));
-    return `<tr onclick="hoopOpenTeamModal('${hoopEsc(t.id)}')" style="cursor:pointer">
-      <td class="pos${i<3?' top':''}">${i+1}</td>
-      <td><div class="team-cell">${hoopTeamBadge(t,'team-logo')}${hoopEsc(t.name)}<span style="font-size:10px;color:var(--muted);margin-left:6px">${hoopEsc(t.gender || 'Men')}</span></div></td>
-      <td class="w">${t.wins}</td><td class="l">${t.losses}</td><td class="gb">${gb}</td>
-    </tr>`;
-  }).join('') || `<tr><td colspan="5" style="color:var(--muted);font-size:14px;padding:10px 0">No teams registered yet.</td></tr>`;
-  bodies.forEach(b=>{ if(b) b.innerHTML = html; });
+  const container = document.getElementById('standingsContainer');
+  const fullContainer = document.getElementById('standingsFullContainer');
+
+  /* Legacy containers — write a combined view so nothing breaks. */
+  const legacyBodies = [
+    document.getElementById('standingsBody'),
+    document.getElementById('standingsFullBody')
+  ];
+
+  if(!comp){
+    if(container) hoopShowSkeleton(container, 'table');
+    if(fullContainer) hoopShowSkeleton(fullContainer, 'table');
+    legacyBodies.forEach(b=>{ if(b) hoopShowSkeleton(b, 'table'); });
+    return;
+  }
+
+  /* Group teams by division */
+  const groups = {};
+  (comp.teams || []).forEach(t=>{
+    const g = t.gender || 'Men';
+    if(!groups[g]) groups[g] = [];
+    groups[g].push(t);
+  });
+  const divisions = Object.keys(groups).sort((a,b)=> hoopDivisionRank(a) - hoopDivisionRank(b));
+
+  function buildTable(teamList){
+    const sorted = hoopSortedTeams(teamList);
+    const leaderDiff = sorted.length ? (sorted[0].wins - sorted[0].losses) : 0;
+    const rows = sorted.map((t,i)=>{
+      const gb = i===0 ? '—' : (( (leaderDiff - (t.wins - t.losses)) / 2 ).toFixed(1));
+      return `<tr onclick="hoopOpenTeamModal('${hoopEsc(t.id)}')" style="cursor:pointer">
+        <td class="pos${i<3?' top':''}">${i+1}</td>
+        <td><div class="team-cell">${hoopTeamBadge(t,'team-logo')}${hoopEsc(t.name)}</div></td>
+        <td class="w">${t.wins}</td>
+        <td class="l">${t.losses}</td>
+        <td class="gb">${gb}</td>
+      </tr>`;
+    }).join('') || `<tr><td colspan="5" style="color:var(--muted);font-size:14px;padding:10px 0">No teams in this division yet.</td></tr>`;
+    return `<table>
+      <thead><tr><th>Pos</th><th>Team</th><th>W</th><th>L</th><th>GB</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+  }
+
+  function buildDivisionBlocks(){
+    if(!divisions.length) return '<p style="color:var(--muted);font-size:14px">No teams yet.</p>';
+    return divisions.map(div=>`
+      <div class="standings-division" data-division="${hoopEsc(div)}">
+        <h4 class="standings-division-title">${hoopEsc(hoopDivisionLabel(div))}</h4>
+        ${buildTable(groups[div])}
+      </div>
+    `).join('');
+  }
+
+  if(container) container.innerHTML = buildDivisionBlocks();
+  if(fullContainer) fullContainer.innerHTML = buildDivisionBlocks();
+
+  /* Legacy: combined (Men + Women + Mixed) with gender column */
+  legacyBodies.forEach(b=>{
+    if(!b) return;
+    const all = divisions.flatMap(d => groups[d]);
+    const sorted = hoopSortedTeams(all);
+    const leaderDiff = sorted.length ? (sorted[0].wins - sorted[0].losses) : 0;
+    b.innerHTML = sorted.map((t,i)=>{
+      const gb = i===0 ? '—' : (( (leaderDiff - (t.wins - t.losses)) / 2 ).toFixed(1));
+      return `<tr onclick="hoopOpenTeamModal('${hoopEsc(t.id)}')" style="cursor:pointer">
+        <td class="pos${i<3?' top':''}">${i+1}</td>
+        <td><div class="team-cell">${hoopTeamBadge(t,'team-logo')}${hoopEsc(t.name)}<span style="font-size:10px;color:var(--muted);margin-left:6px">${hoopEsc(t.gender || 'Men')}</span></div></td>
+        <td class="w">${t.wins}</td><td class="l">${t.losses}</td><td class="gb">${gb}</td>
+      </tr>`;
+    }).join('') || `<tr><td colspan="5" style="color:var(--muted);font-size:14px;padding:10px 0">No teams registered yet.</td></tr>`;
+  });
 }
 
-/* ---------- TICKER / SCORES ---------- */
+/* =========================================================
+   TICKER / SCORES
+   ========================================================= */
 function hoopFormatDate(dateStr){
   if(!dateStr) return '';
   const d = new Date(dateStr+'T00:00:00');
@@ -225,6 +351,7 @@ function hoopTickerCardHTML(game, teams){
 function hoopRenderTicker(data, comp){
   const el = document.getElementById('tickerTrack');
   if(!el) return;
+  if(!comp){ hoopShowSkeleton(el, 'list'); return; }
   el.innerHTML = comp.games.map(g=>hoopTickerCardHTML(g, comp.teams)).join('') || `<p style="color:var(--muted);font-size:14px;padding:10px 0">No games yet.</p>`;
 }
 function hoopRenderScoresPage(data, comp){
@@ -232,36 +359,21 @@ function hoopRenderScoresPage(data, comp){
   const finalEl = document.getElementById('finalGrid');
   const upEl = document.getElementById('upcomingGrid');
   if(!liveEl && !finalEl && !upEl) return;
+  if(!comp){
+    if(liveEl) hoopShowSkeleton(liveEl, 'list');
+    if(finalEl) hoopShowSkeleton(finalEl, 'list');
+    if(upEl) hoopShowSkeleton(upEl, 'list');
+    return;
+  }
   const byStatus = s => comp.games.filter(g=>g.status===s).map(g=>hoopTickerCardHTML(g, comp.teams)).join('') || '<p style="color:var(--muted);font-size:14px">Nothing here right now.</p>';
   if(liveEl) liveEl.innerHTML = byStatus('live');
   if(finalEl) finalEl.innerHTML = byStatus('final');
   if(upEl) upEl.innerHTML = byStatus('upcoming');
 }
 
-/* ---------- FEATURED / FEED / CLIPS ---------- */
-
-function hoopFeedCardHTML(item, revealClass, tilt){
-  const rc = (tilt?' tilt3d':'') + (revealClass ? ' '+revealClass : '');
-  return `<article class="feed-card${rc}" data-cat="${hoopEsc(item.cat)}">
-    <div class="thumb">
-      <img src="${hoopEsc(item.img)}" alt="${hoopEsc(item.title)}" />
-      <div class="play"></div>
-      <span class="dur">${hoopEsc(item.dur||'')}</span>
-      <span class="cat">${hoopEsc(item.cat)}</span>
-    </div>
-    <div class="body">
-      <div class="kicker">${hoopEsc(item.kicker||'')}</div>
-      <h3>${hoopEsc(item.title)}</h3>
-      <div class="stats">
-        <span>${HOOP_ICONS.eye} ${hoopFormatCount(item.views)}</span>
-        <button class="stat-engage${hoopEngageClass('like','news:'+item.id)}" data-engage-like="news:${hoopEsc(item.id)}">${HOOP_ICONS.up}<span>${hoopFormatCount(item.likes)}</span></button>
-        <button class="stat-engage${hoopEngageClass('dislike','news:'+item.id)}" data-engage-dislike="news:${hoopEsc(item.id)}">${HOOP_ICONS.down}<span>${hoopFormatCount(item.dislikes||0)}</span></button>
-        <span>${HOOP_ICONS.msg} ${hoopFormatCount(item.comments)}</span>
-      </div>
-    </div>
-  </article>`;
-}
-
+/* =========================================================
+   CLIPS
+   ========================================================= */
 function hoopClipHTML(clip, revealClass){
   const sizeClass = clip.size ? ' '+clip.size : '';
   const rc = revealClass ? ' '+revealClass : '';
@@ -289,12 +401,15 @@ function hoopClipHTML(clip, revealClass){
 function hoopRenderClips(data, comp){
   const el = document.getElementById('clipsGrid');
   if(!el) return;
+  if(!comp){ hoopShowSkeleton(el, 'clips'); return; }
   const limit = el.dataset.limit ? parseInt(el.dataset.limit,10) : comp.clips.length;
   const revealClass = el.dataset.revealClass || '';
   el.innerHTML = comp.clips.slice(0,limit).map(c=>hoopClipHTML(c, revealClass)).join('') || '<p style="color:var(--muted);font-size:14px;padding:10px 0">No clips yet.</p>';
 }
 
-/* ---------- BRACKET (WITH LOGOS) ---------- */
+/* =========================================================
+   BRACKET — split by division
+   ========================================================= */
 function hoopBracketMatchHTML(m, teams){
   if(m.bye){
     const who = m.teamA || m.teamB;
@@ -316,11 +431,8 @@ function hoopBracketMatchHTML(m, teams){
   const aClass = winner ? (winner===m.teamA ? ' winner' : ' loser') : '';
   const bClass = winner ? (winner===m.teamB ? ' winner' : ' loser') : '';
   const badge = isLive ? '<span class="live-dot">LIVE</span>' : isFinal ? '<span>FINAL</span>' : '<span>UPCOMING</span>';
-
-  // Add logos here for bracket matches
   const logoA = teamA ? hoopTeamBadge(teamA, 'bracket-team-logo') : '';
   const logoB = teamB ? hoopTeamBadge(teamB, 'bracket-team-logo') : '';
-
   const teamsHtml = (isLive||isFinal)
     ? `<div class="ticker-teams">
         <div class="ticker-team${aClass}">${logoA}<span class="name">${hoopEsc(nameA)}</span><span class="score">${m.scoreA}</span></div>
@@ -338,63 +450,143 @@ function hoopBracketMatchHTML(m, teams){
     <div class="ticker-meta"><span>${hoopEsc(seedLabel)}</span><span>${hoopEsc(m.note||'')}</span></div>
   </div>`;
 }
+
+/* Reads whichever bracket storage the comp has. Supports:
+   - comp.brackets = { Men: {...}, Women: {...} }  (new)
+   - comp.bracket  = {...}                          (legacy, treated as Men) */
+function hoopGetBracketsByDivision(comp){
+  if(comp.brackets && Object.keys(comp.brackets).length){
+    return comp.brackets;
+  }
+  if(comp.bracket){
+    return { Men: comp.bracket };
+  }
+  return {};
+}
+
 function hoopRenderBracket(data, comp){
   const el = document.getElementById('bracketRounds');
-  if(!el || typeof HoopBracket==='undefined') return;
   const nqWrap = document.getElementById('bracketNonQualifiersWrap');
   const nqEl = document.getElementById('bracketNonQualifiers');
-  const bracket = comp.bracket;
-  if(!HoopBracket.exists(bracket)){
-    el.style.removeProperty('--rounds');
-    el.innerHTML = '<p class="bracket-empty">The bracket hasn\'t been created yet.</p>';
+  if(!el || typeof HoopBracket === 'undefined') return;
+
+  if(!comp){
+    hoopShowSkeleton(el, 'cards');
     if(nqWrap) nqWrap.style.display = 'none';
     return;
   }
-  const rounds = HoopBracket.computeRounds(bracket);
-  el.style.setProperty('--rounds', rounds.length);
-  el.innerHTML = rounds.map((round,ri)=>{
-    const isFinalRound = ri === rounds.length-1;
-    return `<div class="bracket-round${isFinalRound?' round-final':''}">
-      <h3>${hoopEsc(round.name)}</h3>
-      <div class="bracket-round-body">${round.matches.map(m=>hoopBracketMatchHTML(m, comp.teams)).join('')}</div>
-    </div>`;
-  }).join('');
 
-  if(nqEl){
-    const nonQualifiers = HoopBracket.nonQualifiers(comp.teams, bracket);
-    if(!nonQualifiers.length){
-      if(nqWrap) nqWrap.style.display = 'none';
-    } else {
-      if(nqWrap) nqWrap.style.display = '';
-      // FIXED: Changed from team-pill to team-card
-      nqEl.innerHTML = nonQualifiers.map(t=>`
+  const bracketsByDivision = hoopGetBracketsByDivision(comp);
+  const divisions = Object.keys(bracketsByDivision)
+    .filter(k => HoopBracket.exists(bracketsByDivision[k]))
+    .sort((a,b)=> hoopDivisionRank(a) - hoopDivisionRank(b));
+
+  if(!divisions.length){
+    el.style.removeProperty('--rounds');
+    el.innerHTML = '<p class="bracket-empty">No bracket has been created yet.</p>';
+    if(nqWrap) nqWrap.style.display = 'none';
+    return;
+  }
+
+  /* Outer bracket container stays as flex/block; we append a wrapper per division */
+  el.innerHTML = '';
+  el.style.removeProperty('--rounds');
+
+  /* The legacy non-qualifiers area is now per-division; hide the page-level one */
+  if(nqWrap) nqWrap.style.display = 'none';
+  if(nqEl) nqEl.innerHTML = '';
+
+  divisions.forEach(divKey=>{
+    const bracket = bracketsByDivision[divKey];
+    const rounds = HoopBracket.computeRounds(bracket);
+
+    const wrap = document.createElement('div');
+    wrap.className = 'bracket-division';
+
+    const title = document.createElement('h3');
+    title.className = 'bracket-division-title';
+    title.textContent = (divKey === 'Mixed' ? 'Mixed Division' : divKey + "'s Bracket");
+    wrap.appendChild(title);
+
+    const grid = document.createElement('div');
+    grid.className = 'bracket';
+    grid.style.setProperty('--rounds', rounds.length);
+    grid.innerHTML = rounds.map((round, ri)=>{
+      const isFinalRound = ri === rounds.length - 1;
+      return `<div class="bracket-round${isFinalRound?' round-final':''}">
+        <h3>${hoopEsc(round.name)}</h3>
+        <div class="bracket-round-body">${round.matches.map(m=>hoopBracketMatchHTML(m, comp.teams)).join('')}</div>
+      </div>`;
+    }).join('');
+    wrap.appendChild(grid);
+
+    /* Non-qualifiers for this division only */
+    const seeded = new Set((bracket.seeds || []).filter(Boolean));
+    const divisionTeams = (comp.teams || []).filter(t => (t.gender || 'Men') === divKey);
+    const nonQualifiers = divisionTeams.filter(t => !seeded.has(t.id));
+    if(nonQualifiers.length){
+      const nqTitle = document.createElement('h4');
+      nqTitle.className = 'standings-division-title';
+      nqTitle.style.marginTop = '24px';
+      nqTitle.textContent = 'Not in the Bracket';
+      wrap.appendChild(nqTitle);
+
+      const nqGrid = document.createElement('div');
+      nqGrid.className = 'bracket-nonq';
+      nqGrid.innerHTML = nonQualifiers.map(t=>`
         <div class="team-card" onclick="hoopOpenTeamModal('${hoopEsc(t.id)}')" style="cursor:pointer">
           ${hoopTeamBadge(t)}
           <div class="name">${hoopEsc(t.name)}</div>
-          <div class="rec" style="font-size:10px;text-transform:uppercase;letter-spacing:0.1em;color:var(--gold);margin-top:2px">${hoopEsc(t.gender || 'Men')}</div>
           <div class="rec">${t.wins}W · ${t.losses}L${t.city?' · '+hoopEsc(t.city):''}</div>
         </div>`).join('');
+      wrap.appendChild(nqGrid);
     }
-  }
+
+    el.appendChild(wrap);
+  });
 }
 
+/* =========================================================
+   MASTER RENDER
+   ========================================================= */
 function hoopRenderAll(){
   const data = HoopData.load();
-  const comp = HoopData.activeCompetition(data);
+  const comp = data ? HoopData.activeCompetition(data) : null;
+
   hoopRenderCompetitionCards(data);
-  if(comp){
-    hoopRenderTeamPills(data, comp);
-    hoopRenderTeamCards(data, comp);
-    hoopRenderStandings(data, comp);
-    hoopRenderTicker(data, comp);
-    hoopRenderScoresPage(data, comp);
-    hoopRenderClips(data, comp);
-    hoopRenderBracket(data, comp);
-  }
+  hoopRenderTeamPills(data, comp);
+  hoopRenderTeamCards(data, comp);
+  hoopRenderStandings(data, comp);
+  hoopRenderTicker(data, comp);
+  hoopRenderScoresPage(data, comp);
+  hoopRenderClips(data, comp);
+  hoopRenderBracket(data, comp);
+}
+
+function hoopAfterReady(data){
+  if(data){ hoopRenderAll(); return; }
+  const ids = ['competitionsGrid','standingsBody','standingsFullBody','teamsGrid',
+    'liveGrid','finalGrid','upcomingGrid','clipsGrid','bracketRounds',
+    'bracketNonQualifiers','watchPlayer','teamsScroll',
+    'standingsContainer','standingsFullContainer'];
+  ids.forEach(id=>{
+    const el = document.getElementById(id);
+    if(el) hoopShowEmpty(el, "Couldn't load data — check your connection and refresh.");
+  });
 }
 
 if(document.readyState === 'loading'){
-  document.addEventListener('DOMContentLoaded', hoopRenderAll);
+  document.addEventListener('DOMContentLoaded', () => {
+    hoopRenderAll();
+    HoopData.ready().then((data) => {
+      hoopAfterReady(data);
+      document.dispatchEvent(new CustomEvent('hoop:render-complete'));
+    });
+  });
 } else {
   hoopRenderAll();
+  HoopData.ready().then((data) => {
+    hoopAfterReady(data);
+    document.dispatchEvent(new CustomEvent('hoop:render-complete'));
+  });
 }
